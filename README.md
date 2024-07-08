@@ -1,5 +1,7 @@
-After cloning the repo:
-### Synthetic Dataset Generation
+## Synthetic Dataset Generation
+
+> IMPORTANT: Currently the annotations for the dataset are in the `YOLO v5` style.
+
 1. Request the champion images from the Riot API:
 ```
 python3 reference_images/request_champion_square_images.py
