@@ -1,4 +1,4 @@
-## Synthetic Dataset Generation
+## Synthetic Dataset Generation for Champion Recognition
 
 > IMPORTANT: Currently the annotations for the dataset are in the `YOLO v5` style.
 
