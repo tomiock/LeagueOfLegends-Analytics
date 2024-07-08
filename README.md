@@ -9,3 +9,4 @@ The default config values are already setup at the beginning of the Python file 
 ```
 python3 create_dataset.py
 ```
+The `dataset` folder can be created easily with `mkdir dataset`.
