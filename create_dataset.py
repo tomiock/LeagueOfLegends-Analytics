@@ -11,10 +11,10 @@ RADIUS_CIRCLE = 56
 COLOR_BLUE = '#1c7cce'
 COLOR_RED = '#cc122b'
 CIRCLE_WIDTH = 4
-OFFSET = 1
+OFFSET = 10
 RESIZE_CHAMPION = 40
 IMAGE_SIZE = (640, 640)
-DATASET_SIZE = 10
+DATASET_SIZE = 100
 NUM_CHAMPIONS = 167
 
 MAP_FILE = 'reference_images/maps/MAP.png'
@@ -57,13 +57,15 @@ def create_champion_icon(image_path: str, color: str):
     return result
 
 
-def paste_on_larger_image(result_image, larger_image, path_filename, label: str):
-    assert OFFSET > 0
+def paste_on_larger_image(champion_image, larger_image, path_filename, label: str):
+    OFFSET = larger_image.width // 7
+    offset_x = OFFSET
+    offset_y = OFFSET
 
-    random_x = random.randint(OFFSET, larger_image.width - result_image.width - OFFSET)
-    random_y = random.randint(OFFSET, larger_image.height - result_image.height - OFFSET)
+    random_x = random.randint(offset_x, larger_image.width - offset_x)
+    random_y = random.randint(offset_y, larger_image.height - offset_y)
 
-    resized_result_image = result_image.resize((RESIZE_CHAMPION, RESIZE_CHAMPION))
+    resized_result_image = champion_image.resize((RESIZE_CHAMPION, RESIZE_CHAMPION))
     larger_image.paste(resized_result_image, (random_x, random_y), resized_result_image)
 
     with io.open(path_filename, 'a') as file:
