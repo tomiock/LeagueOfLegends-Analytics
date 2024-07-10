@@ -2,6 +2,7 @@ runs/
 reference_images/champions/*.png
 reference_images/champion_names.csv
 dataset/
+tmp_tests/
 
 .idea/
 .backup/
