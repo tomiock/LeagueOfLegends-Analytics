@@ -160,6 +160,7 @@ def generate_image(number: int):
             image_red, map_image, file_name_joined_labels, str(red))
 
     map_image = update_image(map_image)
+    map_image = Image.fromarray(map_image)
     map_image.save(file_name_joined_images)
 
 

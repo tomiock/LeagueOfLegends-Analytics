@@ -1,4 +1,4 @@
 from ultralytics import YOLO
 
-model = YOLO('train8/weights/best.pt')
-model.predict('test_images/IMG_11.png', save=True)
+model = YOLO('best.pt')
+model.predict('test_images/IMG_9_clean.png', save=True)
