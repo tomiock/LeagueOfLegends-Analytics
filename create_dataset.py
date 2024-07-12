@@ -7,6 +7,8 @@ import string
 import os
 import random
 
+from remove_terrain import update_image
+
 RADIUS_CIRCLE = 56
 COLOR_BLUE = '#1c7cce'
 COLOR_RED = '#cc122b'
@@ -14,7 +16,7 @@ CIRCLE_WIDTH = 4
 OFFSET = 10
 RESIZE_CHAMPION = 40
 IMAGE_SIZE = (640, 640)
-DATASET_SIZE = 100
+DATASET_SIZE = 500
 NUM_CHAMPIONS = 167
 
 MAP_FILE = 'reference_images/maps/MAP.png'
@@ -45,7 +47,8 @@ def create_champion_icon(image_path: str, color: str):
     mask = Image.new('L', (width, height), 0)
     draw = ImageDraw.Draw(mask)
 
-    draw.ellipse((center_x - radius, center_y - radius, center_x + radius, center_y + radius), fill=255)
+    draw.ellipse((center_x - radius, center_y - radius,
+                 center_x + radius, center_y + radius), fill=255)
 
     result = Image.new('RGBA', (width, height), (255, 255, 255, 0))
     result.paste(image, (0, 0), mask=mask)
@@ -65,8 +68,10 @@ def paste_on_larger_image(champion_image, larger_image, path_filename, label: st
     random_x = random.randint(offset_x, larger_image.width - offset_x)
     random_y = random.randint(offset_y, larger_image.height - offset_y)
 
-    resized_result_image = champion_image.resize((RESIZE_CHAMPION, RESIZE_CHAMPION))
-    larger_image.paste(resized_result_image, (random_x, random_y), resized_result_image)
+    resized_result_image = champion_image.resize(
+        (RESIZE_CHAMPION, RESIZE_CHAMPION))
+    larger_image.paste(resized_result_image, (random_x,
+                       random_y), resized_result_image)
 
     with io.open(path_filename, 'a') as file:
         annotation = generate_yolov5_annotations((larger_image.width, larger_image.height),
@@ -140,18 +145,21 @@ def generate_image(number: int):
             blue = random.randint(1, NUM_CHAMPIONS)
             red = random.randint(1, NUM_CHAMPIONS)
 
-        blue = get_name_from_csv_row(CSV_FILE, blue)
-        red = get_name_from_csv_row(CSV_FILE, red)
+        blue_str = get_name_from_csv_row(CSV_FILE, blue)
+        red_str = get_name_from_csv_row(CSV_FILE, red)
 
-        image_blue = f'{CHAMPIONS_DIR}/{str(blue)}.png'
-        image_red = f'{CHAMPIONS_DIR}/{str(red)}.png'
+        image_blue = f'{CHAMPIONS_DIR}/{str(blue_str)}.png'
+        image_red = f'{CHAMPIONS_DIR}/{str(red_str)}.png'
 
         image_blue = create_champion_icon(image_blue, color='blue')
         image_red = create_champion_icon(image_red, color='red')
 
-        map_image = paste_on_larger_image(image_blue, map_image, file_name_joined_labels, str(blue))
-        map_image = paste_on_larger_image(image_red, map_image, file_name_joined_labels, str(red))
+        map_image = paste_on_larger_image(
+            image_blue, map_image, file_name_joined_labels, str(blue))
+        map_image = paste_on_larger_image(
+            image_red, map_image, file_name_joined_labels, str(red))
 
+    map_image = update_image(map_image)
     map_image.save(file_name_joined_images)
 
 

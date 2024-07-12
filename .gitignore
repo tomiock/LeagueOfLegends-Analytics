@@ -4,6 +4,8 @@ reference_images/champion_names.csv
 dataset/
 tmp_tests/
 
+__pycache__/
+
 .idea/
 .backup/
 .virtual_documents/

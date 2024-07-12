@@ -188,4 +188,4 @@ if champion_names.index('MonkeyKing') != -1:
 with open('champion_names.csv', 'w') as f:
     f.write('index,name\n')
     for idx, name in enumerate(champion_names):
-        f.write(f'{idx+1},{name}\n')
+        f.write(f'{idx+1},{name.lower()}\n')

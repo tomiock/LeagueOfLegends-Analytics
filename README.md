@@ -17,6 +17,7 @@ The `dataset` folder can be created easily with `mkdir dataset`.
 - 5 champs in each time located in the boundaries of the map
 - each time has its color
 - the champions icons have by default a realistic size on the map
+- removing of terrain
 
 #### Missing features (for now):
 - no fog of war
