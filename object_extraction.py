@@ -1,4 +1,4 @@
-from detect_circles import detect_circles
+from detect_circles import detect_circles, draw_circles
 from remove_terrain import update_image
 
 import os
@@ -6,9 +6,9 @@ import cv2
 from numpy import ndarray
 
 
-def champ_extraction(image: ndarray, radius) -> ndarray:
+def champ_extraction(image: ndarray, radius):
     img_clean = update_image(image)
-    circles = detect_circles(img_clean, radius=radius, output_image=image, param1=300, param2=13)
+    circles = detect_circles(img_clean, radius=radius, param1=300, param2=13)
     return circles
 
 
@@ -18,7 +18,8 @@ if __name__ == '__main__':
     for filename in os.listdir(dir):
         if filename.endswith('.png'):
             img = cv2.imread(os.path.join(dir, filename))
-            img = champ_extraction(img, 31)
+            circles = champ_extraction(img, 31)
+            img = draw_circles(img, circles)
             cv2.imshow('image', img)
             cv2.waitKey(0)
         count += 1
