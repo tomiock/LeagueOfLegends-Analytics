@@ -3,10 +3,10 @@ from remove_terrain import update_image
 
 import os
 import cv2
-from numpy import ndarray
+import numpy as np
 
 
-def champ_extraction(image: ndarray, radius):
+def champ_extraction(image: np.ndarray, radius: int):
     img_clean = update_image(image)
     circles = detect_circles(img_clean, radius=radius, param1=300, param2=13)
     return circles
