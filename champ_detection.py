@@ -85,11 +85,17 @@ def detect_champs(img, radius):
     detected_champs = crop_champs(circles, -3)
 
     detected_circles = np.uint16(np.around(circles))
+    results = []
+
     for i, pt in enumerate(detected_circles[0, :]):
         detected = crop_icon(detected_champs[i])
 
         result = compare_champs(detected)
-        img = draw_label(img, pt, result)
+        tuple_result = (pt[0], pt[1], pt[2], result)
+        results.append(tuple_result)
+
+    for result in results:
+        img = draw_label(img, result[:3], result[3])
 
     img = draw_circles(img, detected_circles)
 
