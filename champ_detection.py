@@ -54,13 +54,70 @@ def ssim_similarity(img1, img2):
     return avg_ssim_score
 
 
+def SIFT_similarity(img1, img2):
+    sift = cv2.SIFT_create()
+
+    kp1, des1 = sift.detectAndCompute(img1, None)
+    kp2, des2 = sift.detectAndCompute(img2, None)
+
+    if des1 is None or des2 is None:
+        return 0.0
+
+    FLANN_INDEX_KDTREE = 1
+    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    search_params = dict(checks=50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    matches = flann.knnMatch(des1, des2, k=2)
+
+    good_matches = []
+    for m, n in matches:
+        if m.distance < 0.75 * n.distance:
+            good_matches.append(m)
+
+    # Calculate similarity index
+    if len(kp1) == 0:  # Prevent division by zero
+        return 0.0
+
+    similarity_index = len(good_matches) / len(kp1)
+
+    return similarity_index
+
+
+def SIFT_similarity(img1, img2):
+    sift = cv2.SIFT_create()
+
+    kp1, des1 = sift.detectAndCompute(img1, None)
+    _, des2 = sift.detectAndCompute(img2, None)
+
+    if des1 is None or des2 is None:
+        return 0.0
+
+    FLANN_INDEX_KDTREE = 1
+    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    search_params = dict(checks=50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    matches = flann.knnMatch(des1, des2, k=2)
+
+    good_matches = []
+    for m, n in matches:
+        if m.distance < 0.75 * n.distance:
+            good_matches.append(m)
+
+    if len(kp1) == 0:
+        return 0.0
+
+    similarity_index = len(good_matches) / len(kp1)
+
+    return similarity_index
+
+
 def compare_champs(detected):
     results = []
     for file in os.listdir('reference_images/champions/'):
         champ = cv2.imread(f'reference_images/champions/{file}')
         champ = crop_icon(champ)
 
-        difference = ssim_similarity(detected, champ)
+        difference = SIFT_similarity(detected, champ)
 
         result = (file, np.mean(difference))
         results.append(result)
@@ -82,19 +139,15 @@ def draw_label(img, circles, result):
     return img
 
 
-BLUE = (198.1, 90.4, 77.6)
-RED = (352.4, 74.0, 75.3)
-
-
 def detect_champs(img, radius):
     circles = champ_extraction(img, radius)
-    detected_champs = crop_champs(circles, tolerance=3)
+    detected_champs = crop_champs(circles, tolerance=1)
 
     detected_circles = np.uint16(np.around(circles))
     results = []
 
     for i, pt in enumerate(detected_circles[0, :]):
-        detected = crop_icon(detected_champs[i], tolerance=3)
+        detected = crop_icon(detected_champs[i], tolerance=1)
 
         result = compare_champs(detected)
         tuple_result = (pt[0], pt[1], pt[2], result)
