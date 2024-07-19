@@ -2,9 +2,11 @@ import os
 import cv2
 import numpy as np
 
+from skimage.metrics import structural_similarity as ssim
+
 from object_extraction import champ_extraction
 from detect_circles import draw_circles
-from skimage.metrics import structural_similarity as ssim
+from remove_terrain import hsv_to_bounds
 
 
 def crop_champs(circles, tolerance) -> list:
@@ -21,12 +23,12 @@ def crop_champs(circles, tolerance) -> list:
     return detected_champs
 
 
-def crop_icon(img):
+def crop_icon(img, tolerance=0):
     center_x, center_y = img.shape[1] // 2, img.shape[0] // 2
     radius = min(center_x, center_y)
 
     mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
-    cv2.circle(mask, (center_x, center_y), radius, 255, -1)
+    cv2.circle(mask, (center_x, center_y), radius + tolerance, 255, -1)
     masked_img = cv2.bitwise_and(img, img, mask=mask)
 
     return masked_img
@@ -80,15 +82,19 @@ def draw_label(img, circles, result):
     return img
 
 
+BLUE = (198.1, 90.4, 77.6)
+RED = (352.4, 74.0, 75.3)
+
+
 def detect_champs(img, radius):
     circles = champ_extraction(img, radius)
-    detected_champs = crop_champs(circles, -3)
+    detected_champs = crop_champs(circles, tolerance=3)
 
     detected_circles = np.uint16(np.around(circles))
     results = []
 
     for i, pt in enumerate(detected_circles[0, :]):
-        detected = crop_icon(detected_champs[i])
+        detected = crop_icon(detected_champs[i], tolerance=3)
 
         result = compare_champs(detected)
         tuple_result = (pt[0], pt[1], pt[2], result)
