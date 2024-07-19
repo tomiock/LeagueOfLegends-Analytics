@@ -58,7 +58,7 @@ def SIFT_similarity(img1, img2):
     sift = cv2.SIFT_create()
 
     kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(img2, None)
+    _, des2 = sift.detectAndCompute(img2, None)
 
     if des1 is None or des2 is None:
         return 0.0
@@ -76,34 +76,6 @@ def SIFT_similarity(img1, img2):
 
     # Calculate similarity index
     if len(kp1) == 0:  # Prevent division by zero
-        return 0.0
-
-    similarity_index = len(good_matches) / len(kp1)
-
-    return similarity_index
-
-
-def SIFT_similarity(img1, img2):
-    sift = cv2.SIFT_create()
-
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    _, des2 = sift.detectAndCompute(img2, None)
-
-    if des1 is None or des2 is None:
-        return 0.0
-
-    FLANN_INDEX_KDTREE = 1
-    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    search_params = dict(checks=50)
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
-    matches = flann.knnMatch(des1, des2, k=2)
-
-    good_matches = []
-    for m, n in matches:
-        if m.distance < 0.75 * n.distance:
-            good_matches.append(m)
-
-    if len(kp1) == 0:
         return 0.0
 
     similarity_index = len(good_matches) / len(kp1)
