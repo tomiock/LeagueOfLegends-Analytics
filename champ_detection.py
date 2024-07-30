@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 from skimage.metrics import structural_similarity as ssim
 
@@ -143,10 +144,12 @@ def detect_champs(img, radius):
 
 
 if __name__ == '__main__':
+    os.environ["XDG_SESSION_TYPE"] = "xcb"
+
     for file in os.listdir('test_images/'):
         if file.endswith('.png'):
             img = cv2.imread(f'test_images/{file}')
             img = detect_champs(img, 31)
 
-            cv2.imshow("Detected Champions", img)
-            cv2.waitKey(0)
+            plt.imshow(img)
+            plt.show()
