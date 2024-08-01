@@ -126,6 +126,8 @@ def detect_champs(img, radius):
         center = (pt[0], pt[1])
         detected = detected_champs[i]
 
+        plt.imshow(detected)
+
         mask = detect_ring(detected, center)
 
         detected = cv2.bitwise_and(detected, mask)
