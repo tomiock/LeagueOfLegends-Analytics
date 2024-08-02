@@ -6,7 +6,10 @@ def detect_circles(image, radius, param1=200, param2=20, tolerance=3):
     min_r = radius - tolerance
     max_r = radius + tolerance
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = image
 
     detected_circles = cv2.HoughCircles(gray,
                                         cv2.HOUGH_GRADIENT, 1, 20,

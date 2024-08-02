@@ -1,12 +1,13 @@
 import os
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 from skimage.metrics import structural_similarity as ssim
 
 from object_extraction import champ_extraction
 from detect_circles import draw_circles
-from remove_terrain import hsv_to_bounds
+from detect_ring import detect_ring
 
 
 def crop_champs(circles, tolerance) -> list:
@@ -83,11 +84,14 @@ def SIFT_similarity(img1, img2):
     return similarity_index
 
 
-def compare_champs(detected):
+def compare_champs(detected, mask):
     results = []
     for file in os.listdir('reference_images/champions/'):
         champ = cv2.imread(f'reference_images/champions/{file}')
         champ = crop_icon(champ)
+
+        champ = resize_image(champ, (detected.shape[1], detected.shape[0]))
+        champ -= mask
 
         difference = SIFT_similarity(detected, champ)
 
@@ -119,9 +123,17 @@ def detect_champs(img, radius):
     results = []
 
     for i, pt in enumerate(detected_circles[0, :]):
-        detected = crop_icon(detected_champs[i], tolerance=1)
+        center = (pt[0], pt[1])
+        detected = detected_champs[i]
 
-        result = compare_champs(detected)
+        plt.imshow(detected)
+
+        mask = detect_ring(detected, center)
+
+        detected = cv2.bitwise_and(detected, mask)
+        detected = crop_icon(detected, tolerance=-2)
+
+        result = compare_champs(detected, mask)
         tuple_result = (pt[0], pt[1], pt[2], result)
         results.append(tuple_result)
 
@@ -134,10 +146,12 @@ def detect_champs(img, radius):
 
 
 if __name__ == '__main__':
+    os.environ["XDG_SESSION_TYPE"] = "xcb"
+
     for file in os.listdir('test_images/'):
         if file.endswith('.png'):
             img = cv2.imread(f'test_images/{file}')
             img = detect_champs(img, 31)
 
-            cv2.imshow("Detected Champions", img)
-            cv2.waitKey(0)
+            plt.imshow(img)
+            plt.show()
