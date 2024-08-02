@@ -1,14 +1,10 @@
+#include "detect_champ.hpp"
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
-
-void processImage(const cv::Mat& image) {
-    cv::imshow("Processed Image", image);
-    while((cv::waitKey() & 0xEFFFFF) != 27);
-}
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -34,7 +30,7 @@ int main(int argc, char** argv) {
                 std::cerr << "Could not open or find the image: " << entry.path() << std::endl;
                 continue;
             } else {
-                processImage(image);
+                detectChamp(image);
             }
         }
     }

@@ -1,3 +1,11 @@
+# dotfiles
+.idea/
+.cache/
+.backup/
+.virtual_documents/
+.ipynb_checkpoints/
+__pycache__/
+
 runs/
 reference_images/champions/*.png
 reference_images/champion_names.csv
@@ -5,9 +13,16 @@ dataset/
 models/
 tmp_tests/
 
-__pycache__/
+!test_images/set1
+test_images/*
 
-.idea/
-.backup/
-.virtual_documents/
-.ipynb_checkpoints/
+
+
+# C++ and C
+build/
+compile_commands.json
+**/main
+*.o
+cpp/main
+cpp/main.o
+cpp/avatar.png
