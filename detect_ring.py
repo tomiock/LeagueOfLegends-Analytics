@@ -54,9 +54,19 @@ def detect_ring(image, center):
     for contour in contours:
         if len(contour) >= 5:
             line = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
+
+            """
+            random_color = random_rgb()
+            draw_line(mask, line, color=random_color)
+            cv2.imshow('mask', mask)
+            cv2.waitKey(0)
+            """
+
             vx, vy, x, y = line
 
             p1, p2 = intersection_cnt_line(contour, line)
+            cv2.circle(mask, tuple(p1), 1, (255, 0, 0), -1)
+            cv2.circle(mask, tuple(p2), 1, (255, 45, 45), -1)
 
             middle = (p1 + p2) // 2
 
@@ -65,6 +75,8 @@ def detect_ring(image, center):
             perp_line = (vx, vy, x, y)
 
             p3, p4 = intersection_cnt_line(contour, perp_line)
+            cv2.circle(mask, tuple(p3), 1, (255, 100, 100), -1)
+            cv2.circle(mask, tuple(p4), 1, (255, 130, 130), -1)
 
             line1 = create_line(p1, p3)
             middle1 = (p1 + p3) // 2
@@ -83,6 +95,12 @@ def detect_ring(image, center):
 
             lines = [perp_line1, perp_line2, perp_line3]
             point = find_closest_point(lines)
+
+            """
+            cv2.imshow('mask', mask)
+            if cv2.waitKey(0) == ord('q'):
+                cv2.destroyAllWindows()
+            """
 
             centroids.append(tuple(-point.astype(int)))
 
@@ -129,6 +147,8 @@ def find_closest_point(lines):
 def draw_line(image, line, color=None):
     if color is None:
         color = (0, 255, 255)
+
+    color = tuple(map(int, color))
 
     vx, vy, x, y = line
 
