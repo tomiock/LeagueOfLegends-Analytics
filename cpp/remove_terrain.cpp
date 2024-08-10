@@ -13,10 +13,6 @@ tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues,
   float S = hsvValues[1];
   float V = hsvValues[2];
 
-  H = H / 2;
-  S = S / 100 * 255;
-  H = H / 100 * 255;
-
   cv::Vec3f lower_bound = {
       max(H - tolerance[0], 0.0f),
       max(S - tolerance[1], 0.0f),
@@ -24,9 +20,9 @@ tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues,
   };
 
   cv::Vec3f upper_bound = {
-      min(H + tolerance[0], 180.0f),
+      min(H + tolerance[0], 360.0f),
       min(S + tolerance[1], 255.0f),
-      min(V + tolerance[2], 180.0f),
+      min(V + tolerance[2], 255.0f),
   };
 
   return {lower_bound, upper_bound};
@@ -34,13 +30,13 @@ tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues,
 
 cv::Mat update_image(cv::Mat &src) {
   cv::Mat hsv_src;
-  cv::cvtColor(src, hsv_src, cv::COLOR_RGB2HSV);
+  cv::cvtColor(src, hsv_src, cv::COLOR_RGB2HSV_FULL);
 
-  cv::Vec3f tolerance = {100, 50, 50};
+  const cv::Vec3f tolerance = {30.0f, 80.0f, 80.0f};
 
   // the colors to be removed are defined in the header file
-  std::vector<cv::Vec3f> hsv_constants = {TERRAIN, SHADOW, GROUND, RIVER,
-                                          RIVER_SHADOW};
+  std::vector<cv::Vec3f> hsv_constants = {SHADOW, GROUND, RIVER,
+                                          RIVER_SHADOW, TERRAIN};
 
   cv::Mat mask = cv::Mat::zeros(src.size(), CV_8U);
 

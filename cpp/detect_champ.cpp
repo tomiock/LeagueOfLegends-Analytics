@@ -44,10 +44,9 @@ void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
 void detectChamp(cv::Mat &image) {
   image = update_image(image);
 
-  std::vector<cv::Vec3f> circles = detectCircles(image, 30, 300, 14, 3);
+  std::vector<cv::Vec3f> circles = detectCircles(image, 29, 300, 15, 3);
   drawCircles(image, circles);
 
   cv::imshow("Processed Image", image);
-  while ((cv::waitKey() & 0xEFFFFF) != 81)
-    ;
+  while ((cv::waitKey() & 0xEFFFFF) != 81);
 }

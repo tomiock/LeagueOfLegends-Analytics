@@ -7,7 +7,6 @@
 
 // Colors to be removed from the image
 const cv::Vec3f GROUND = {75.7, 26.9, 61.2};
-const cv::Vec3f SHADOW = {78.8, 28.1, 22.4};
 const cv::Vec3f TERRAIN = {100, 33.3, 3.5};
 const cv::Vec3f RIVER = {188.9, 83.9, 75.7};
 const cv::Vec3f RIVER_SHADOW = {188.1, 84.3, 27.5};
