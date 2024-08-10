@@ -2,7 +2,7 @@
 
 Based primarily in OpenCV
 
-## Features:
+## Features
 - Character recognition
 
 
@@ -25,11 +25,9 @@ The `dataset` folder can be created easily with `mkdir dataset`.
 - 5 champs in each time located in the boundaries of the map
 - each time has its color
 - the champions icons have by default a realistic size on the map
-- removing of terrain
 
 #### Missing features (for now):
 - no fog of war
 - no dynamic or different turret or camps status (all camps are alive and turrents at full health)
 - no minions
 - no teamfights (all champs are not together in a close spot)
-
