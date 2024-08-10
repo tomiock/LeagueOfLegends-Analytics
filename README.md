@@ -1,6 +1,14 @@
-## Synthetic Dataset Generation for Champion Recognition
+# Computer Vision to Analyze Pro League Games
 
-> IMPORTANT: Currently the annotations for the dataset are in the `YOLO v5` style.
+Based primarily in OpenCV
+
+## Features:
+- Character recognition
+
+
+## YOLO Synthetic Dataset Creation
+
+> ![warning] Deprecated for a more simple solution.
 
 1. Request the champion images from the Riot API:
 ```
@@ -24,3 +32,4 @@ The `dataset` folder can be created easily with `mkdir dataset`.
 - no dynamic or different turret or camps status (all camps are alive and turrents at full health)
 - no minions
 - no teamfights (all champs are not together in a close spot)
+
