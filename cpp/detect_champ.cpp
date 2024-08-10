@@ -1,4 +1,5 @@
 #include "detect_champ.hpp"
+#include "remove_terrain.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -37,7 +38,9 @@ void drawCircles(cv::Mat& src, std::vector<cv::Vec3f>& circles) {
 }
 
 void detectChamp(cv::Mat& image) {
-    std::vector<cv::Vec3f> circles = detectCircles(image, 30, 300, 20, 3);
+    image = update_image(image);
+
+    std::vector<cv::Vec3f> circles = detectCircles(image, 30, 300, 14, 3);
     drawCircles(image, circles);
 
     cv::imshow("Processed Image", image);

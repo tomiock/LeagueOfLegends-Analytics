@@ -1,15 +1,11 @@
 #include "remove_terrain.hpp"
 #include "opencv2/core/matx.hpp"
+#include "opencv2/imgproc.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <algorithm>
 
 using namespace std;
-
-const cv::Vec3f GROUND = {75.7, 26.9, 61.2};
-const cv::Vec3f SHADOW = {78.8, 28.1, 22.4};
-const cv::Vec3f TERRAIN = {100, 33.3, 3.5};
-const cv::Vec3f RIVER = {188.9, 83.9, 75.7};
 
 tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues, cv::Vec3f tolerance) {
     float H = hsvValues[0]; 
@@ -33,4 +29,29 @@ tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues, cv::Vec3f toleran
     };
 
     return {lower_bound, upper_bound};
+}
+
+cv::Mat update_image(cv::Mat& src) {
+    cv::Mat hsv_src;
+    cv::cvtColor(src, hsv_src, cv::COLOR_RGB2HSV);
+
+    cv::Vec3f tolerance = {100, 50, 50};
+    
+    // the colors to be removed are defined in the header file
+    std::vector<cv::Vec3f> hsv_constants = {TERRAIN, SHADOW, GROUND, RIVER, RIVER_SHADOW};
+
+    cv::Mat mask = cv::Mat::zeros(src.size(), CV_8U);
+
+    for (const cv::Vec3f& hsv_value : hsv_constants) {
+        auto [lower_bound, upper_bound] = hsv_to_bounds(hsv_value, tolerance);
+        cv::Mat temp_mask;
+        cv::inRange(hsv_src, lower_bound, upper_bound, temp_mask);
+        mask |= temp_mask;  // Combine the masks using bitwise OR
+    }
+
+    cv::Mat target;
+    cv::bitwise_and(src, src, target, mask);
+    
+    cv::Mat result = src - target;
+    return result;
 }
