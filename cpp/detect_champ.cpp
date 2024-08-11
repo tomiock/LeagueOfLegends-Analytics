@@ -1,4 +1,5 @@
 #include "detect_champ.hpp"
+#include "circle_priority.hpp"
 #include "remove_terrain.hpp"
 
 #include <opencv2/opencv.hpp>
@@ -41,10 +42,26 @@ void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
   }
 }
 
+
+void drawCirclesClusters(cv::Mat &src, CirclesCluster &circles) {
+  for (size_t i = 0; i < circles.size(); i++) {
+    cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+    int radius = cvRound(circles[i][2]);
+    // circle center
+    cv::circle(src, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
+    // circle outline
+    cv::circle(src, center, radius, cv::Scalar(255, 0, 255), 3, 8, 0);
+  }
+}
+
 void detectChamp(cv::Mat &image) {
   image = update_image(image);
 
   std::vector<cv::Vec3f> circles = detectCircles(image, 29, 300, 15, 3);
+
+  CirclesCluster clusters;
+  cluster_circles(circles, clusters, 1);
+
   drawCircles(image, circles);
 
   cv::imshow("Processed Image", image);
