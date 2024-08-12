@@ -7,7 +7,7 @@ import string
 import os
 import random
 
-from remove_terrain import update_image
+from ../python_prototype/remove_terrain import update_image
 
 RADIUS_CIRCLE = 56
 COLOR_BLUE = '#1c7cce'
