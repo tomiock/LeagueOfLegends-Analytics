@@ -3,42 +3,39 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs }: let
+  outputs = { self, nixpkgs, flake-utils }:
+  let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
 
-    python = let
-      packageOverrides = self:
-        super: {
-          opencv4 = super.opencv4.override {
-            enableGtk3 = true;
-            gtk3 = pkgs.gtk3;
-            enableFfmpeg = true;
-          };
-        };
-    in
-      pkgs.python311.override { inherit packageOverrides; self = python; };
+    commonDependencies = [
+      pkgs.cmake
+      pkgs.clang
+      pkgs.clang-tools
+      pkgs.pkg-config
+      pkgs.gnumake
+      pkgs.gtk3
+      pkgs.libjpeg
+      pkgs.libpng
+      pkgs.libtiff
+    ];
 
-    opencvGtk = pkgs.opencv.override (old: { enableGtk3 = true; });
+    opencvGtk = pkgs.opencv4.override {
+      enableGtk3 = true;
+      gtk3 = pkgs.gtk3;
+      enableFfmpeg = true;
+    };
+
   in
-    {
-
-    devShells.x86_64-linux.default = pkgs.mkShell {
-      buildInputs = [
-        pkgs.clang-tools
-        pkgs.clang
+  rec {
+    devShells.${system}.default = pkgs.mkShell {
+      buildInputs = commonDependencies ++ [
         pkgs.gdb
-        pkgs.gnumake
-        opencvGtk
-        pkgs.pkg-config
-        pkgs.libjpeg
-        pkgs.libpng
-        pkgs.libtiff
-        pkgs.gtk3
         pkgs.libv4l
-        pkgs.python3
+        pkgs.python311
         (pkgs.python311.buildEnv.override {
           extraLibs = [
             pkgs.python311Packages.matplotlib
@@ -46,18 +43,41 @@
             pkgs.python311Packages.scipy
             pkgs.python311Packages.gnureadline
             pkgs.python311Packages.scikit-image
-            python.pkgs.opencv4
+            opencvGtk
           ];
           ignoreCollisions = true;
         })
       ];
+
       shellHook = ''
         SOURCE_DATE_EPOCH=$(date +%s)
         export LANG=en_US.UTF-8	
+      '';
+    };
 
-        echo 'Compile with make'
-        '';
-    }; # end devShells
+    opencv-lol = pkgs.stdenv.mkDerivation {
+      name = "opencv-lol";
+      nativeBuildInputs = commonDependencies ++ [ opencvGtk ];
 
+      src = ./.;
+
+      buildPhase = ''
+        cmake . -DCMAKE_BUILD_TYPE=Release
+        make -j $NIX_BUILD_CORES
+      '';
+
+      installPhase = ''
+        mkdir -p $out/bin
+        echo $(ls --all)
+        cp opencv_lol $out/bin
+      '';
+
+    };
+
+    defaultPackage.${system} = opencv-lol;
+
+    defaultApp.${system} = flake-utils.lib.mkApp {
+      drv = opencv-lol;
+    };
   };
 }

@@ -19,6 +19,7 @@ test_images/*
 
 
 # C++ and C
+result
 build/
 compile_commands.json
 **/main
