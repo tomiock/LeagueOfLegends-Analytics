@@ -27,3 +27,6 @@ compile_commands.json
 cpp/main
 cpp/main.o
 cpp/avatar.png
+
+CMakeCache.txt
+CMakeFiles/
