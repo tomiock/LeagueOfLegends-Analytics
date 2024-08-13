@@ -3,21 +3,18 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    mini-compile-commands = {
-      url = "github:danielbarter/mini_compile_commands";
-      flake = false;
-    };
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, mini-compile-commands }:
+  outputs = { self, nixpkgs, flake-utils }:
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
 
     commonDependencies = [
       pkgs.cmake
-      pkgs.gcc
+      pkgs.clang
+      pkgs.clang-tools
       pkgs.pkg-config
       pkgs.gnumake
       pkgs.gtk3
@@ -32,42 +29,9 @@
       enableFfmpeg = true;
     };
 
-    opencv-lol = pkgs.stdenv.mkDerivation {
-      name = "opencv-lol";
-      nativeBuildInputs = commonDependencies ++ [ opencvGtk ];
-
-      src = ./.;
-
-      cmakeFlags = [
-            "-DCMAKE_BUILD_TYPE=Release"
-            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
-          ];
-
-      buildPhase = ''
-        cmake . -DCMAKE_BUILD_TYPE=Release
-        make -j $NIX_BUILD_CORES
-      '';
-
-      installPhase = ''
-        mkdir -p $out/bin
-        cp opencv_lol $out/bin
-        cp compile_commands.json $out
-      '';
-
-      postBuild = ''
-        mkdir -p $out/
-        cp compile_commands.json $out/compile_commands.json
-      '';
-
-    };
-
   in
   rec {
-    devShells.${system}.default =
-      with import nixpkgs { system = "x86_64-linux"; };
-      let 
-          mcc-env = (callPackage mini-compile-commands {}).wrap stdenv;
-      in (pkgs.mkShell.override {stdenv = mcc-env;}) {
+    devShells.${system}.default = pkgs.mkShell {
       buildInputs = commonDependencies ++ [
         pkgs.gdb
         pkgs.libv4l
@@ -91,6 +55,34 @@
       '';
     };
 
+    opencv-lol = pkgs.stdenv.mkDerivation {
+      name = "opencv-lol";
+      nativeBuildInputs = commonDependencies ++ [ opencvGtk ];
+
+      src = ./.;
+
+      cmakeFlags = [
+            "-DCMAKE_BUILD_TYPE=Release"
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ];
+
+      buildPhase = ''
+        cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        make -j $NIX_BUILD_CORES
+      '';
+
+      installPhase = ''
+        mkdir -p $out/bin
+        cp opencv_lol $out/bin
+        cp compile_commands.json $out
+      '';
+
+      postBuild = ''
+        mkdir -p $out/
+        cp compile_commands.json $out/compile_commands.json
+      '';
+
+    };
 
     defaultPackage.${system} = opencv-lol;
 
