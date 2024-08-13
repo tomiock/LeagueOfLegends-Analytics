@@ -18,6 +18,22 @@
         "type": "github"
       }
     },
+    "mini-compile-commands": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1689962671,
+        "narHash": "sha256-qPyV3iU8rXhIlHEELAtu2UwXtdZgsWMK9dHySlVa8Jo=",
+        "owner": "danielbarter",
+        "repo": "mini_compile_commands",
+        "rev": "073ad72d27287f3e8073c3ef0c9069223fb2048c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "danielbarter",
+        "repo": "mini_compile_commands",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1723175592,
@@ -37,6 +53,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "mini-compile-commands": "mini-compile-commands",
         "nixpkgs": "nixpkgs"
       }
     },
