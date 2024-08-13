@@ -68,6 +68,7 @@
       let 
           mcc-env = (callPackage mini-compile-commands {}).wrap stdenv;
       in (pkgs.mkShell.override {stdenv = mcc-env;}) {
+
       buildInputs = commonDependencies ++ [
         pkgs.gdb
         pkgs.libv4l
@@ -90,7 +91,6 @@
         export LANG=en_US.UTF-8	
       '';
     };
-
 
     defaultPackage.${system} = opencv-lol;
 

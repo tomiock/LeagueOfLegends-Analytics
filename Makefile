@@ -24,9 +24,6 @@ compile_commands.json: $(SRCS)
 	echo ']' >> compile_commands.json
 
 clean:
+	rm -f *.o
 	rm -f $(TARGET) $(OBJS)
 	rm -rf $(BUILD_DIR)
-	rm -f compile_commands.json
-
-install:
-	echo "Installing"
