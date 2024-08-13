@@ -61,15 +61,25 @@
 
       src = ./.;
 
+      cmakeFlags = [
+            "-DCMAKE_BUILD_TYPE=Release"
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ];
+
       buildPhase = ''
-        cmake . -DCMAKE_BUILD_TYPE=Release
+        cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         make -j $NIX_BUILD_CORES
       '';
 
       installPhase = ''
         mkdir -p $out/bin
-        echo $(ls --all)
         cp opencv_lol $out/bin
+        cp compile_commands.json $out
+      '';
+
+      postBuild = ''
+        mkdir -p $out/
+        cp compile_commands.json $out/compile_commands.json
       '';
 
     };
