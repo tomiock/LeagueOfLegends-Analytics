@@ -18,7 +18,7 @@ set(SOURCES
     cpp/main.cpp
     cpp/detect_champ.cpp
     cpp/remove_terrain.cpp
-    # cpp/circle_priority.cpp
+    cpp/circle_priority.cpp
 )
 
 # compile_commands.json
