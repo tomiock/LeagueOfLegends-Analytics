@@ -16,14 +16,19 @@
     pkgs = import nixpkgs { inherit system; };
 
     commonDependencies = [
+      pkgs.clang-tools
+      pkgs.clang
+
       pkgs.cmake
-      pkgs.gcc
       pkgs.pkg-config
       pkgs.gnumake
+      pkgs.gdb
+
       pkgs.gtk3
       pkgs.libjpeg
       pkgs.libpng
       pkgs.libtiff
+      pkgs.libv4l
     ];
 
     opencvGtk = pkgs.opencv4.override {
@@ -70,17 +75,18 @@
       in (pkgs.mkShell.override {stdenv = mcc-env;}) {
 
       buildInputs = commonDependencies ++ [
-        pkgs.gdb
-        pkgs.libv4l
-        pkgs.python311
-        (pkgs.python311.buildEnv.override {
+
+        opencvGtk
+
+        pkgs.python3
+        (python311.buildEnv.override {
           extraLibs = [
             pkgs.python311Packages.matplotlib
             pkgs.python311Packages.numpy
             pkgs.python311Packages.scipy
             pkgs.python311Packages.gnureadline
             pkgs.python311Packages.scikit-image
-            opencvGtk
+                  #python.pkgs.opencv4
           ];
           ignoreCollisions = true;
         })

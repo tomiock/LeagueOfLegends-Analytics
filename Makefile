@@ -1,7 +1,7 @@
 CC = clang++
 CFLAGS = $(shell pkg-config --cflags opencv4)
 LDFLAGS = $(shell pkg-config --libs opencv4)
-TARGET = opencv-lol
+TARGET = opencv_lol
 SRCS = cpp/main.cpp cpp/detect_champ.cpp cpp/remove_terrain.cpp 
 # cpp/circle_priority.cpp
 OBJS = $(SRCS:.cpp=.o)
