@@ -19,7 +19,7 @@ void cluster_circles(Circles &circles, CirclesCluster &clusters, float distanceT
         float distance = std::sqrt(dx * dx + dy * dy); // euclidian distance used
 
         if (distance < distanceThreshold) {
-          cluster.push_back(circle);
+          cluster.push_back(circle); // new element
           addedToCluster = true;
           break;
         }
@@ -28,7 +28,7 @@ void cluster_circles(Circles &circles, CirclesCluster &clusters, float distanceT
         break;
     }
     if (!addedToCluster) {
-      clusters.push_back({circle});
+      clusters.push_back({circle}); // new element
     }
   }
 }

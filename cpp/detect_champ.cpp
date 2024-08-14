@@ -32,9 +32,9 @@ std::vector<cv::Vec3f> detectCircles(cv::Mat &image, unsigned int radius,
 }
 
 void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
-  for (size_t i = 0; i < circles.size(); i++) {
-    cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-    int radius = cvRound(circles[i][2]);
+  for (const cv::Vec3f & circle : circles) {
+    cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
+    int radius = cvRound(circle[2]);
     // circle center
     cv::circle(src, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
     // circle outline
@@ -42,29 +42,31 @@ void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
   }
 }
 
+void drawCirclesClusters(cv::Mat &src, CirclesCluster &clusters) {
+  for (Circles & circles : clusters) {
 
-/*
-void drawCirclesClusters(cv::Mat &src, CirclesCluster &circles) {
-  for (size_t i = 0; i < circles.size(); i++) {
-    cv::Point center(cv::cvRound(circles[i][0]), cv::cvRound(circles[i][1]));
-    int radius = cv::cvRound(circles[i][2]);
-    // circle center
-    cv::circle(src, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
-    // circle outline
-    cv::circle(src, center, radius, cv::Scalar(255, 0, 255), 3, 8, 0);
+    cv::Scalar clusterColor(rand() % 256, rand() % 256, rand() % 256);
+
+    for (const cv::Vec3f & circle : circles) {
+      cv::Point center((cvRound(circle[0])), cvRound(circle[1]));
+      int radius = cvRound(circle[2]);
+      // circle center
+      cv::circle(src, center, 3, clusterColor, -1, 8, 0);
+      // circle outline
+      cv::circle(src, center, radius, clusterColor, 3, 8, 0);
+    }
   }
 }
-*/
 
 void detectChamp(cv::Mat &image) {
   image = update_image(image);
 
   std::vector<cv::Vec3f> circles = detectCircles(image, 29, 300, 15, 3);
 
-  //CirclesCluster clusters;
-  //cluster_circles(circles, clusters, 1);
+  CirclesCluster clusters;
+  cluster_circles(circles, clusters, 55); // issue here
 
-  drawCircles(image, circles);
+  drawCirclesClusters(image, clusters);
 
   cv::imshow("Processed Image", image);
   while ((cv::waitKey() & 0xEFFFFF) != 81);
