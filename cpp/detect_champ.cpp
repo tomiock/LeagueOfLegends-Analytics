@@ -32,7 +32,7 @@ std::vector<cv::Vec3f> detectCircles(cv::Mat &image, unsigned int radius,
 }
 
 void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
-  for (const cv::Vec3f & circle : circles) {
+  for (const cv::Vec3f &circle : circles) {
     cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
     int radius = cvRound(circle[2]);
     // circle center
@@ -43,11 +43,11 @@ void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
 }
 
 void drawCirclesClusters(cv::Mat &src, CirclesCluster &clusters) {
-  for (Circles & circles : clusters) {
+  for (Circles &circles : clusters) {
 
     cv::Scalar clusterColor(rand() % 256, rand() % 256, rand() % 256);
 
-    for (const cv::Vec3f & circle : circles) {
+    for (const cv::Vec3f &circle : circles) {
       cv::Point center((cvRound(circle[0])), cvRound(circle[1]));
       int radius = cvRound(circle[2]);
       // circle center
@@ -59,15 +59,17 @@ void drawCirclesClusters(cv::Mat &src, CirclesCluster &clusters) {
 }
 
 void detectChamp(cv::Mat &image) {
-  image = update_image(image);
+  cv::Mat image_updated = update_image(image);
 
-  std::vector<cv::Vec3f> circles = detectCircles(image, 29, 300, 15, 3);
+  std::vector<cv::Vec3f> circles = detectCircles(image_updated, 29, 300, 15, 3);
 
   CirclesCluster clusters;
   cluster_circles(circles, clusters, 55); // issue here
 
-  drawCirclesClusters(image, clusters);
+  drawCirclesClusters(image_updated, clusters);
 
-  cv::imshow("Processed Image", image);
+  cv::imshow("Processed Image", image_updated);
   while ((cv::waitKey() & 0xEFFFFF) != 81);
+
+  get_priority_circles(image, clusters);
 }

@@ -19,6 +19,7 @@ test_images/*
 
 
 # C++ and C
+opencv_lol
 result
 build/
 compile_commands.json

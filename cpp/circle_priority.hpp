@@ -12,6 +12,6 @@ using Circles = vector<cv::Vec3f>;
 
 void cluster_circles(Circles &circles, CirclesCluster &clusters, float distanceThreshold); // Passed as reference
 
-int get_priority_circles(CirclesCluster &clusterCircles);
+void get_priority_circles(cv::Mat& src, CirclesCluster &clusterCircles);
 
 #endif
