@@ -1,4 +1,5 @@
 #include "circle_priority.hpp"
+#include "remove_terrain.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <vector>
@@ -64,9 +65,16 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
         cv::Mat croppedResult = src(boundingBox);
 
         // color to gray
-        cv::cvtColor(croppedResult, croppedResult, cv::COLOR_BGR2GRAY);
+        //cv::cvtColor(croppedResult, croppedResult, cv::COLOR_BGR2GRAY);
+        cv::Mat threshold;
+
+        cv::Vec3f hsv_value = {74, 20, 25};
+        auto [lower_bound, upper_bound] = getColorBounds(hsv_value, 10, 50, 50);
+        cv::inRange(croppedResult, lower_bound, upper_bound, threshold);
 
         // canny
+        cv::Mat edges;
+        cv::Canny(croppedResult, edges, 100, 200);
 
         // coutour detected
 
@@ -74,7 +82,7 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
 
         // diff countour
 
-        cv::imshow("Cropped Circle", croppedResult);
+        cv::imshow("Cropped Circle", threshold);
         while ((cv::waitKey() & 0xEFFFFF) != 81);
       }
     }

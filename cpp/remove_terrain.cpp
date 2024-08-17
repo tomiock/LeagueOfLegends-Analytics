@@ -1,55 +1,48 @@
 #include "remove_terrain.hpp"
-#include "opencv2/core/matx.hpp"
-#include "opencv2/imgproc.hpp"
 
 #include <algorithm>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
 
-tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues,
-                                          cv::Vec3f tolerance) {
-  float H = hsvValues[0];
-  float S = hsvValues[1];
-  float V = hsvValues[2];
+#include <opencv2/opencv.hpp>
 
-  cv::Vec3f lower_bound = {
-      max(H - tolerance[0], 0.0f),
-      max(S - tolerance[1], 0.0f),
-      max(V - tolerance[2], 0.0f),
-  };
+// works in NOT FULL hsv color space where the HUE is between 0 and 180 degrees.
+colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance, int saturationTolerance, int valueTolerance) {
+    // Calculate the lower bound for HSV
+    
+    int hue = static_cast<int>(hsvColor[0] / 2.0); // Scale 0-360 to 0-179
+    int saturation = static_cast<int>(hsvColor[1] * 2.55); // Scale 0-100 to 0-255
+    int value = static_cast<int>(hsvColor[2] * 2.55); // Scale 0-100 to 0-255
+    
+    cv::Scalar lower_bound = cv::Scalar(
+        std::max(0, (int)hsvColor[0] - hueTolerance),        // Lower bound for H
+        std::max(0, (int)hsvColor[1] - saturationTolerance), // Lower bound for S
+        std::max(0, (int)hsvColor[2] - valueTolerance)       // Lower bound for V
+    );
 
-  cv::Vec3f upper_bound = {
-      min(H + tolerance[0], 360.0f),
-      min(S + tolerance[1], 255.0f),
-      min(V + tolerance[2], 255.0f),
-  };
+    // Calculate the upper bound for HSV
+    cv::Scalar upper_bound = cv::Scalar(
+        std::min(179, (int)hsvColor[0] + hueTolerance),      // Upper bound for H
+        std::min(255, (int)hsvColor[1] + saturationTolerance), // Upper bound for S
+        std::min(255, (int)hsvColor[2] + valueTolerance)     // Upper bound for V
+    );
 
-  return {lower_bound, upper_bound};
+    return std::make_tuple(lower_bound, upper_bound);
 }
 
-cv::Mat update_image(cv::Mat &src) {
-  cv::Mat hsv_src;
-  cv::cvtColor(src, hsv_src, cv::COLOR_RGB2HSV_FULL);
+cv::Mat applyMask(cv::Mat& image, cv::Scalar targetColor) {
+    // Define tolerances
+    int hueTolerance = 20;
+    int saturationTolerance = 100;
+    int valueTolerance = 100;
 
-  const cv::Vec3f tolerance = {30.0f, 80.0f, 80.0f};
+    cv::Scalar lowerBound, upperBound;
+    std::tie(lowerBound, upperBound) = getColorBounds(targetColor, hueTolerance, saturationTolerance, valueTolerance);
 
-  // the colors to be removed are defined in the header file
-  std::vector<cv::Vec3f> hsv_constants = {SHADOW, GROUND, RIVER,
-                                          RIVER_SHADOW, TERRAIN};
-
-  cv::Mat mask = cv::Mat::zeros(src.size(), CV_8U);
-
-  for (const cv::Vec3f &hsv_value : hsv_constants) {
-    auto [lower_bound, upper_bound] = hsv_to_bounds(hsv_value, tolerance);
-    cv::Mat temp_mask;
-    cv::inRange(hsv_src, lower_bound, upper_bound, temp_mask);
-    mask |= temp_mask; // Combine the masks using bitwise OR
-  }
-
-  cv::Mat target;
-  cv::bitwise_and(src, src, target, mask);
-
-  cv::Mat result = src - target;
-  return result;
+    cv::Mat mask, result;
+    cv::inRange(image, lowerBound, upperBound, mask); // Create the mask
+    cv::bitwise_not(mask, mask); // Invert the mask to remove the selected color
+    image.copyTo(result, mask); // Apply the mask to the original image
+    return result;
 }

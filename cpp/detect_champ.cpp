@@ -59,17 +59,23 @@ void drawCirclesClusters(cv::Mat &src, CirclesCluster &clusters) {
 }
 
 void detectChamp(cv::Mat &image) {
-  cv::Mat image_updated = update_image(image);
 
-  std::vector<cv::Vec3f> circles = detectCircles(image_updated, 29, 300, 15, 3);
+  cv::Mat hsvImage;
+  cv::cvtColor(image, hsvImage, cv::COLOR_RGB2HSV);
+
+  cv::Scalar color = {75, 26, 61};
+  cv::Mat image_updated = applyMask(hsvImage, color);
+
+  std::vector<cv::Vec3f> circles = detectCircles(image_updated, 29, 300, 13, 3);
 
   CirclesCluster clusters;
   cluster_circles(circles, clusters, 55); // issue here
 
   drawCirclesClusters(image_updated, clusters);
 
+  cv::cvtColor(image_updated, image_updated, cv::COLOR_HSV2RGB);
   cv::imshow("Processed Image", image_updated);
   while ((cv::waitKey() & 0xEFFFFF) != 81);
 
-  get_priority_circles(image, clusters);
+  //get_priority_circles(image, clusters);
 }

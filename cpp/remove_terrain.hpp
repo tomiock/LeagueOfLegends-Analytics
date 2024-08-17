@@ -12,9 +12,12 @@ const cv::Vec3f RIVER = {188.9, 83.9, 75.7};
 const cv::Vec3f RIVER_SHADOW = {188.1, 84.3, 27.5};
 const cv::Vec3f SHADOW = {78.8, 28.1, 22.4};
 
+typedef std::tuple<cv::Scalar, cv::Scalar> colorBounds;
+
 // Function to calculate HSV bounds
-std::tuple<cv::Vec3f, cv::Vec3f> hsv_to_bounds(cv::Vec3f hsvValues,
-                                               cv::Vec3f tolerance);
+colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance, int saturationTolerance, int valueTolerance);
+
+cv::Mat applyMask(cv::Mat& image, cv::Scalar targetColor);
 
 // Function to update the image by removing specified regions
 cv::Mat update_image(cv::Mat &src);
