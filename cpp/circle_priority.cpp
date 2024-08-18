@@ -1,6 +1,7 @@
 #include "circle_priority.hpp"
 #include "remove_terrain.hpp"
 
+#include <algorithm>
 #include <opencv2/opencv.hpp>
 #include <vector>
 
@@ -65,11 +66,11 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
         cv::Mat croppedResult = src(boundingBox);
 
         // color to gray
-        //cv::cvtColor(croppedResult, croppedResult, cv::COLOR_BGR2GRAY);
         cv::Mat threshold;
+        cv::Vec3f hsv_value = {197, 88, 80};
+        cv::Scalar lower_bound, upper_bound;
 
-        cv::Vec3f hsv_value = {74, 20, 25};
-        auto [lower_bound, upper_bound] = getColorBounds(hsv_value, 10, 50, 50);
+        std::tie(lower_bound, upper_bound)= getColorBounds(hsv_value, 10, 150, 150);
         cv::inRange(croppedResult, lower_bound, upper_bound, threshold);
 
         // canny
