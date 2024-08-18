@@ -15,9 +15,11 @@ const cv::Vec3f SHADOW = {78.8, 28.1, 22.4};
 typedef std::tuple<cv::Scalar, cv::Scalar> colorBounds;
 
 // Function to calculate HSV bounds
-colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance, int saturationTolerance, int valueTolerance);
+colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance,
+                           int saturationTolerance, int valueTolerance);
 
-cv::Mat applyMask(cv::Mat& image, cv::Scalar targetColor);
+cv::Mat applyMask(cv::Mat &image, cv::Scalar targetColor,
+                  cv::Scalar tolerances);
 
 // Function to update the image by removing specified regions
 cv::Mat update_image(cv::Mat &src);
