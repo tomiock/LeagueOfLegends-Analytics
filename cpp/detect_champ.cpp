@@ -62,17 +62,17 @@ void detectChamp(cv::Mat &image) {
   cv::Mat hsvImage;
   cv::cvtColor(image, hsvImage, cv::COLOR_BGR2HSV);
 
-  cv::Scalar color = {75, 26, 61};
+  // delete terrain colors (dirt)
+  cv::Scalar color_terrain = {75, 26, 61};
+  cv::Scalar tolerances_terrain = {10, 255, 255};
+  cv::Mat image_updated = applyMask(hsvImage, color_terrain, tolerances_terrain);
 
-  double hueTolerance = 15;
-  double saturationTolerance = 255;
-  double valueTolerance = 255;
+  // delete river colors (blue)
+  cv::Scalar color_river = {188, 83.9, 75.7};
+  cv::Scalar tolerances_rives = {1, 30, 255};
+  image_updated = applyMask(image_updated, color_river, tolerances_rives);
 
-  cv::Mat image_updated =
-      applyMask(hsvImage, color,
-                cv::Scalar{hueTolerance, saturationTolerance, valueTolerance});
-
-  std::vector<cv::Vec3f> circles = detectCircles(image_updated, 29, 300, 13, 3);
+  std::vector<cv::Vec3f> circles = detectCircles(image_updated, 29, 150, 15, 3);
 
   CirclesCluster clusters;
   cluster_circles(circles, clusters, 55); // issue here
@@ -80,6 +80,7 @@ void detectChamp(cv::Mat &image) {
   drawCirclesClusters(image_updated, clusters);
 
   cv::cvtColor(image_updated, image_updated, cv::COLOR_HSV2BGR);
+
   cv::imshow("Processed Image", image_updated);
   while ((cv::waitKey() & 0xEFFFFF) != 81)
     ;
