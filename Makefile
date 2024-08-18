@@ -6,7 +6,13 @@ SRCS = cpp/main.cpp cpp/detect_champ.cpp cpp/remove_terrain.cpp cpp/circle_prior
 OBJS = $(SRCS:.cpp=.o)
 BUILD_DIR = build
 
-all: $(TARGET) compile_commands.json
+# Flag to control generation of compile_commands.json
+GENERATE_COMPILE_COMMANDS ?= 0
+
+all: $(TARGET)
+ifeq ($(GENERATE_COMPILE_COMMANDS), 1)
+all: compile_commands.json
+endif
 
 $(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $(OBJS) $(LDFLAGS)
@@ -14,7 +20,6 @@ $(TARGET): $(OBJS)
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# maybe this will break sometime, use bear if so
 compile_commands.json: $(SRCS)
 	mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -MJ $(BUILD_DIR)/compile_commands.json.tmp -c $(SRCS)
