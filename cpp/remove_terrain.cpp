@@ -40,9 +40,6 @@ cv::Mat applyMask(cv::Mat &image, cv::Scalar targetColor,
   std::tie(lowerBound, upperBound) =
       getColorBounds(targetColor, tolerances[0], tolerances[1], tolerances[2]);
 
-  cout << "lower" << lowerBound << endl;
-  cout << "upper" << upperBound << endl;
-
   cv::Mat mask, result;
   cv::inRange(image, lowerBound, upperBound, mask); // Create the mask
   cv::bitwise_not(mask, mask); // Invert the mask to remove the selected color

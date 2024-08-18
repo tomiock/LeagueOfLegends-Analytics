@@ -41,10 +41,6 @@ void cluster_circles(Circles &circles, CirclesCluster &clusters,
 void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
   // see if cluster contains just one element -> pass
 
-  cv::imshow("Processed Image", src);
-  while ((cv::waitKey() & 0xEFFFFF) != 81)
-    ;
-
   for (auto &cluster : clusterCircles) {
     if (clusterCircles.size() != 1) {
       for (const cv::Vec3f &circle : cluster) {
@@ -82,9 +78,6 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
         std::tie(lower_bound, upper_bound) =
             getColorBounds(hsv_value, 10, 10, 10);
 
-        cout << "lower" << lower_bound << endl;
-        cout << "upper" << upper_bound << endl;
-
         cv::Mat mask, result;
         cv::inRange(croppedResult, lower_bound, upper_bound,
                     mask); // Create the mask
@@ -101,9 +94,6 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
 
         // diff countour
 
-        cv::imshow("Cropped Circle", mask);
-        while ((cv::waitKey() & 0xEFFFFF) != 81)
-          ;
       }
     }
   }
