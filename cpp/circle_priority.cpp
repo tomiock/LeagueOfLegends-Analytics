@@ -66,21 +66,24 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
 
         cv::Mat croppedResult = src(boundingBox);
 
-        cv::imshow("Processed Image", croppedResult);
-        while ((cv::waitKey() & 0xEFFFFF) != 81)
-          ;
-
         // color to gray
-        cv::Vec3f hsv_value = {197, 88, 80};
-        // cv::Vec3f hsv_value = {78, 17, 23};
-        cv::Scalar lower_bound, upper_bound;
+        cv::Vec3f hsv_value = {191, 74, 74};
 
+        cv::Scalar lower_bound, upper_bound;
         std::tie(lower_bound, upper_bound) =
-            getColorBounds(hsv_value, 10, 10, 10);
+            getColorBounds(hsv_value, 10, 10, 100);
 
         cv::Mat mask, result;
         cv::inRange(croppedResult, lower_bound, upper_bound,
                     mask); // Create the mask
+
+        cv::cvtColor(croppedResult, croppedResult, cv::COLOR_HSV2BGR);
+
+        cv::bitwise_not(mask, mask); // Invert the mask to remove the selected color
+        croppedResult.copyTo(result, mask);  // Apply the mask to the original image
+
+        cv::imshow("Processed Image", result);
+        while ((cv::waitKey() & 0xEFFFFF) != 81);
 
         /*
         // canny

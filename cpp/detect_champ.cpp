@@ -85,5 +85,5 @@ void detectChamp(cv::Mat &image) {
   while ((cv::waitKey() & 0xEFFFFF) != 81)
     ;
 
-  // get_priority_circles(hsvImage, clusters);
+  get_priority_circles(hsvImage, clusters);
 }
