@@ -26,15 +26,15 @@ Using this we first try to recognize the support if an icon is on top of another
 
 ### Execution/Build with Flakes (Nix)
 
-Run:
-```shell
-nix run github:tomiock/LeagueOfLegends-Analytics
-```
-
 Build:
 ```shell
 nix build github:tomiock/LeagueOfLegends-Analytics
 ```
+and install for the local user:
+```shell
+nix profile install .
+```
+Execute this commands on the project directory.
 
 The repo can also be cloned. Use `nix flake show` on the repo directory to see the available outputs. There is a shell available in which `make` can be executed to build directly without using nix. Doing this will generate the `compile_commands.json` correctly, unlike `nix build`.
 
