@@ -24,6 +24,8 @@
       pkgs.gnumake
       pkgs.gdb
 
+      #pkgs.opencv4
+
       pkgs.gtk3
       pkgs.libjpeg
       pkgs.libpng
@@ -39,6 +41,7 @@
 
     opencv-lol = pkgs.stdenv.mkDerivation {
       name = "opencv-lol";
+
       nativeBuildInputs = commonDependencies ++ [ opencvGtk ];
 
       src = ./.;
@@ -71,6 +74,7 @@
       buildInputs = commonDependencies ++ [
 
         opencvGtk
+        pkgs.opencv
 
         pkgs.python3
         (python311.buildEnv.override {
