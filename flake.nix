@@ -18,14 +18,9 @@
     commonDependencies = [
       pkgs.clang-tools
       pkgs.clang
-
-      pkgs.cmake
       pkgs.pkg-config
       pkgs.gnumake
       pkgs.gdb
-
-      #pkgs.opencv4
-
       pkgs.gtk3
       pkgs.libjpeg
       pkgs.libpng
@@ -39,29 +34,38 @@
       enableFfmpeg = true;
     };
 
-    opencv-lol = pkgs.stdenv.mkDerivation {
+    mkDerivationWithOpencv = opencv: pkgs.stdenv.mkDerivation {
       name = "opencv-lol";
 
-      nativeBuildInputs = commonDependencies ++ [ opencvGtk ];
+      nativeBuildInputs = commonDependencies ++ [ opencv ];
 
       src = ./.;
 
       buildPhase = ''
-        make
+        make DEBUG_MACRO=${
+          if opencv == opencvGtk then
+            "1" # debug macro enable because of GTK package is included
+          else
+            "0"
+        }
       '';
 
       installPhase = ''
         mkdir -p $out/bin
         cp opencv_lol $out/bin
-        cp compile_commands.json $out
+        #cp compile_commands.json $out
       '';
 
       postBuild = ''
         mkdir -p $out/
+        cp opencv_lol $out/bin/opencv_lol
         cp compile_commands.json $out/compile_commands.json
       '';
-
     };
+
+    opencv-lol-debug = mkDerivationWithOpencv opencvGtk;
+
+    opencv-lol-release = mkDerivationWithOpencv pkgs.opencv4;
 
   in
   rec {
@@ -72,10 +76,8 @@
       in (pkgs.mkShell.override {stdenv = mcc-env;}) {
 
       buildInputs = commonDependencies ++ [
-
         opencvGtk
-        pkgs.opencv
-
+        pkgs.opencv4
         pkgs.python3
         (python311.buildEnv.override {
           extraLibs = [
@@ -84,7 +86,6 @@
             pkgs.python311Packages.scipy
             pkgs.python311Packages.gnureadline
             pkgs.python311Packages.scikit-image
-                  #python.pkgs.opencv4
           ];
           ignoreCollisions = true;
         })
@@ -96,10 +97,18 @@
       '';
     };
 
-    defaultPackage.${system} = opencv-lol;
+    # usage with `nix build`
+    defaultPackage.${system} = opencv-lol-release;
 
-    defaultApp.${system} = flake-utils.lib.mkApp {
-      drv = opencv-lol;
+    packages.${system} = {
+      debug = opencv-lol-debug;
+      release = opencv-lol-release; # `nix build .#packages.x86_64-linux.debug`
     };
+
+    apps.x86_64-linux.opencv_lol = flake-utils.lib.mkApp {
+      drv = opencv-lol-release;
+      name = "opencv_lol";
+    };
+
   };
 }
