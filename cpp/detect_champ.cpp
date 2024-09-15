@@ -65,7 +65,8 @@ void detectChamp(cv::Mat &image) {
   // delete terrain colors (dirt)
   cv::Scalar color_terrain = {75, 26, 61};
   cv::Scalar tolerances_terrain = {10, 255, 255};
-  cv::Mat image_updated = applyMask(hsvImage, color_terrain, tolerances_terrain);
+  cv::Mat image_updated =
+      applyMask(hsvImage, color_terrain, tolerances_terrain);
 
   // delete river colors (blue)
   cv::Scalar color_river = {188, 83.9, 75.7};

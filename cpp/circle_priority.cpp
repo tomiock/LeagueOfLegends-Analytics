@@ -93,28 +93,17 @@ std::string frequentColor(cv::Mat &src, cv::Point center,
                           unsigned short radius) {
 
   const cv::Mat mask = create_mask(src, center, radius);
-
   cv::bitwise_and(src, mask, mask);
-
-  /*
-  cv::imshow("Processed Image", mask);
-  while ((cv::waitKey() & 0xEFFFFF) != 81)
-    ;
-  */
-
-  // if using HSV, there is more logic to be applied
   cv::Scalar color = averageColorExcludingBlack(mask);
 
-  std::cout << color << std::endl;
-
   std::string color_str;
-
   unsigned int THRESHHOLD_INTENSITY = 50;
   if (color[0] > THRESHHOLD_INTENSITY && color[0] > color[2]) {
     color_str = "blue";
   } else if (color[2] > THRESHHOLD_INTENSITY && color[2] > color[0]) {
     color_str = "red";
-  } else if (color[0] < THRESHHOLD_INTENSITY && color[2] < THRESHHOLD_INTENSITY) {
+  } else if (color[0] < THRESHHOLD_INTENSITY &&
+             color[2] < THRESHHOLD_INTENSITY) {
     color_str = "undecided";
   } else {
     color_str = "undecided";
@@ -148,7 +137,6 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
         x = std::max(x, 0);
         y = std::max(y, 0);
 
-        // TODO: add global variables to reference the image size
         width = std::min(width, src.cols - x);
         height = std::min(height, src.rows - y);
 
@@ -157,42 +145,8 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
 
         cv::Point center_box = {radius, radius};
 
-        /*
-        // color to gray
-        cv::Scalar hsv_blue = {200, 90, 74};
-        cv::Scalar hsv_red = {350, 81, 81};
-
-        cv::Scalar lower_bound_red, upper_bound_red;
-        std::tie(lower_bound_red, upper_bound_red) =
-            getColorBounds(hsv_red, 50, 50, 200);
-
-        cv::Scalar lower_bound_blue, upper_bound_blue;
-        std::tie(lower_bound_blue, upper_bound_blue) =
-            getColorBounds(hsv_blue, 50, 50, 200);
-
-        cv::Mat maskRed, maskBlue, result;
-        cv::inRange(croppedResult, lower_bound_blue, upper_bound_blue,
-                    maskBlue);
-        cv::inRange(croppedResult, lower_bound_red, upper_bound_red, maskRed);
-
-        // cv::bitwise_not(maskBlue, maskBlue); // Invert the mask to remove the
-        
-        croppedResult.copyTo(result, maskRed);
-        croppedResult.copyTo(result, maskBlue);
-
-        // create a mask from the circle in this loop (has accurate width) to
-        // get the more provinent color inside of it
-        */
-
         std::string color = frequentColor(croppedResult, center_box, radius);
         putCenteredText(croppedResult, color, cv::Scalar{255, 255, 255});
-
-        /*
-        cv::imshow("Processed Image", result);
-        while ((cv::waitKey() & 0xEFFFFF) != 81)
-          ;
-        */
-
       }
     }
   }
