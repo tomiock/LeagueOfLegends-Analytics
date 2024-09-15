@@ -31,7 +31,7 @@ std::vector<cv::Vec3f> detectCircles(cv::Mat &image, unsigned int radius,
   return circles;
 }
 
-void drawCircles(cv::Mat &src, std::vector<cv::Vec3f> &circles) {
+void drawCircles(cv::Mat &src, Circles &circles) {
   for (const cv::Vec3f &circle : circles) {
     cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
     int radius = cvRound(circle[2]);
@@ -77,6 +77,8 @@ void detectChamp(cv::Mat &image) {
   CirclesCluster clusters;
   cluster_circles(circles, clusters, 55); // issue here
 
+  get_priority_circles(image_updated, clusters);
+
   drawCirclesClusters(image_updated, clusters);
 
   cv::cvtColor(image_updated, image_updated, cv::COLOR_HSV2BGR);
@@ -84,6 +86,4 @@ void detectChamp(cv::Mat &image) {
   cv::imshow("Processed Image", image_updated);
   while ((cv::waitKey() & 0xEFFFFF) != 81)
     ;
-
-  get_priority_circles(hsvImage, clusters);
 }

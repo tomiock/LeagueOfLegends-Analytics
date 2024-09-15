@@ -12,6 +12,10 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  #ifdef OPENCV_DEBUG
+    std::cout << "debug flag is here" << std::endl;
+  #endif
+
   fs::path directoryPath = argv[1];
 
   if (!fs::is_directory(directoryPath)) {
