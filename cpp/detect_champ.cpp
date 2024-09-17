@@ -1,7 +1,6 @@
 #include "detect_champ.hpp"
 #include "circle_priority.hpp"
 #include "remove_terrain.hpp"
-
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>

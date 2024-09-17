@@ -64,47 +64,71 @@ const cv::Mat create_mask(const cv::Mat &src, cv::Point center,
   return mask;
 }
 
-cv::Scalar averageColorExcludingBlack(const cv::Mat &image) {
-  cv::Scalar sumColor(0, 0, 0);
+cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
+  double sumHueX = 0.0, sumHueY = 0.0;
+  double sumSaturation = 0.0, sumValue = 0.0;
   int count = 0;
 
-  for (int y = 0; y < image.rows; ++y) {
-    for (int x = 0; x < image.cols; ++x) {
-      cv::Vec3b pixel = image.at<cv::Vec3b>(y, x);
-      if (pixel != cv::Vec3b(0, 0, 0)) {
-        sumColor[0] += pixel[0];
-        // sumColor[1] += pixel[1];
-        sumColor[2] += pixel[2];
+  for (int y = 0; y < hsvImage.rows; ++y) {
+    for (int x = 0; x < hsvImage.cols; ++x) {
+      cv::Vec3b pixel = hsvImage.at<cv::Vec3b>(y, x);
+
+      // Only consider non-black pixels (non-zero Saturation and Value)
+      if (pixel[1] > 0 || pixel[2] > 0) {
+        int hue = pixel[0];        // is in the range [0, 179] in OpenCV
+        int saturation = pixel[1]; // is in the range [0, 255]
+        int value = pixel[2];      // is in the range [0, 255]
+
+        // Convert Hue to cartesian coordinates (cosine and sine)
+        double hueRadians = (hue * 2.0 * CV_PI) / 180.0; // Convert to [0, 2*PI]
+        sumHueX += cos(hueRadians);
+        sumHueY += sin(hueRadians);
+
+        sumSaturation += saturation;
+        sumValue += value;
+
         count++;
       }
     }
   }
 
+  cv::Scalar averageColor(0, 0, 0);
   if (count > 0) {
-    sumColor[0] /= count;
-    // sumColor[1] /= count;
-    sumColor[2] /= count;
+    // Compute the average Hue by converting back from cartesian to angular form
+    double avgHueRadians = atan2(sumHueY, sumHueX);
+    if (avgHueRadians < 0) {
+      avgHueRadians += 2.0 * CV_PI; // Ensure hue is positive
+    }
+    int avgHue = static_cast<int>((avgHueRadians * 180.0) / CV_PI /
+                                  2.0); // Convert back to OpenCV range [0, 179]
+
+    int avgSaturation = static_cast<int>(sumSaturation / count);
+    int avgValue = static_cast<int>(sumValue / count);
+
+    averageColor[0] = avgHue;
+    averageColor[1] = avgSaturation;
+    averageColor[2] = avgValue;
   }
 
-  return sumColor;
+  return averageColor;
 }
-
 std::string frequentColor(cv::Mat &src, cv::Point center,
                           unsigned short radius) {
 
   const cv::Mat mask = create_mask(src, center, radius);
   cv::bitwise_and(src, mask, mask);
-  cv::Scalar color = averageColorExcludingBlack(mask);
+
+  cv::Scalar color = averageHSVColorExcludingBlack(mask);
+
+  std::cout << color << std::endl;
 
   std::string color_str;
-  unsigned int THRESHHOLD_INTENSITY = 50;
-  if (color[0] > THRESHHOLD_INTENSITY && color[0] > color[2]) {
-    color_str = "blue";
-  } else if (color[2] > THRESHHOLD_INTENSITY && color[2] > color[0]) {
+  unsigned int intensity = 50;
+
+  if (color[0] < 30 || color[0] > 140) {
     color_str = "red";
-  } else if (color[0] < THRESHHOLD_INTENSITY &&
-             color[2] < THRESHHOLD_INTENSITY) {
-    color_str = "undecided";
+  } else if (color[0] > 70 || color[0] < 130) {
+    color_str = "blue";
   } else {
     color_str = "undecided";
   }
@@ -117,9 +141,6 @@ std::string frequentColor(cv::Mat &src, cv::Point center,
 // which circles are on top of each other
 void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
   // see if cluster contains just one element -> pass
-
-  cv::cvtColor(src, src, cv::COLOR_HSV2BGR);
-
   for (auto &cluster : clusterCircles) {
     if (clusterCircles.size() != 1) {
       for (const cv::Vec3f &circle : cluster) {
@@ -145,8 +166,8 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
 
         cv::Point center_box = {radius, radius};
 
-        std::string color = frequentColor(croppedResult, center_box, radius);
-        putCenteredText(croppedResult, color, cv::Scalar{255, 255, 255});
+        std::string team = frequentColor(croppedResult, center_box, radius);
+        putCenteredText(croppedResult, team, cv::Scalar{255, 255, 255});
       }
     }
   }
