@@ -1,6 +1,7 @@
 #include "detect_champ.hpp"
 #include "circle_priority.hpp"
 #include "remove_terrain.hpp"
+
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
@@ -77,13 +78,35 @@ void detectChamp(cv::Mat &image) {
   CirclesCluster clusters;
   cluster_circles(circles, clusters, 55); // issue here
 
-  get_priority_circles(image_updated, clusters);
+  vector<Champion> champions = get_priority_circles(image_updated, clusters);
 
-  drawCirclesClusters(image_updated, clusters);
+  //drawCirclesClusters(image_updated, clusters);
+
+  for (auto champion : champions) {
+    std::cout << champion.team << std::endl;
+
+    cv::Scalar team_color;
+    if (champion.team == "red") {
+
+      team_color = {8, 200, 200};
+
+    } else if (champion.team == "blue") {
+
+      team_color = {100, 200, 200};
+
+    } else {
+      team_color = {0, 0, 0};
+    }
+
+    cout << team_color << endl;
+
+    cv::Point center = {static_cast<int>(champion.center_x), static_cast<int>(champion.center_y)};
+    cv::circle(image_updated, center, champion.radius, team_color, 5);
+  }
+
 
   cv::cvtColor(image_updated, image_updated, cv::COLOR_HSV2BGR);
-
   cv::imshow("Processed Image", image_updated);
-  while ((cv::waitKey() & 0xEFFFFF) != 81)
-    ;
+  while ((cv::waitKey() & 0xEFFFFF) != 81);
+
 }

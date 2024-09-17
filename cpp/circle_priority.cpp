@@ -1,5 +1,6 @@
 #include "circle_priority.hpp"
 #include "detect_champ.hpp"
+#include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
 #include "remove_terrain.hpp"
 
@@ -138,8 +139,9 @@ std::string frequentColor(cv::Mat &src, cv::Point center,
   return color_str;
 }
 
-// which circles are on top of each other
-void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
+vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
+  vector<Champion> champion_list;
+
   // see if cluster contains just one element -> pass
   for (auto &cluster : clusterCircles) {
     if (clusterCircles.size() != 1) {
@@ -148,7 +150,6 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
         cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
         unsigned short radius = cvRound(circle[2]) + 5;
 
-        // Define the bounding box of the circle
         int x = center.x - radius;
         int y = center.y - radius;
         int width = 2 * radius;
@@ -167,11 +168,95 @@ void get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
         cv::Point center_box = {radius, radius};
 
         std::string team = frequentColor(croppedResult, center_box, radius);
-        putCenteredText(croppedResult, team, cv::Scalar{255, 255, 255});
+        
+        //putCenteredText(croppedResult, team, cv::Scalar{255, 255, 255});
+
+        /*
+        cv::cvtColor(croppedResult, croppedResult, cv::COLOR_HSV2BGR);
+        cv::imshow("box", croppedResult);
+        while ((cv::waitKey() & 0xEFFFFF) != 81)
+          ;
+        cv::cvtColor(croppedResult, croppedResult, cv::COLOR_BGR2HSV);
+        */
+
+        cv::Mat display = cv::Mat::zeros(croppedResult.size(), CV_8UC1);
+
+        cv::Mat lowerRedMask, upperRedMask, blueMask;
+        cv::inRange(croppedResult, cv::Scalar(0, 120, 120),
+                    cv::Scalar(8, 255, 255), lowerRedMask);
+        cv::inRange(croppedResult, cv::Scalar(175, 120, 120),
+                    cv::Scalar(179, 255, 255), upperRedMask);
+        cv::bitwise_or(lowerRedMask, upperRedMask, display);
+
+        cv::inRange(croppedResult, cv::Scalar(95, 120, 120),
+                    cv::Scalar(128, 255, 255), blueMask);
+        cv::bitwise_or(display, blueMask, display);
+        // cv::cvtColor(display, display, cv::COLOR_GRAY2BGR);
+
+        /*
+        cv::imshow("box", display);
+        while ((cv::waitKey() & 0xEFFFFF) != 81)
+          ;
+        */
+
+        cv::medianBlur(display, display, 3);
+
+        Circles circles;
+        cv::HoughCircles(display, circles, cv::HOUGH_GRADIENT, 1, 2 * radius,
+                         350, 5, radius - 5, radius - 3);
+
+        if (circles.size() == 0) {
+        } else if (circles.size() > 1) {
+        } else {
+          Champion champion = {
+            static_cast<unsigned short>(circles[0][2]),
+            static_cast<unsigned int>(center.x),
+            static_cast<unsigned int>(center.y),
+            team,
+          };
+          champion_list.push_back(champion);
+        }
+
+        /*
+          typedef struct{
+            unsigned short radius;
+            unsigned int center_x;
+            unsigned int center_y;
+            bool team;
+          } Champion;
+        */
+
+        /*
+        for (size_t i = 0; i < circles.size(); i++) {
+          cv::Vec3i c = circles[i];
+          cv::Point center = cv::Point(c[0], c[1]);
+          int radius = c[2];
+          cv::circle(display, center, radius, cv::Scalar(255, 0, 0), 2);
+        }
+
+        int count = 0;
+        for (auto circle : circles) {
+          std::cout << circle[2] << std::endl;
+          count++;
+        }
+
+        if (count == 0) {
+          std::cout << "no circle" << endl;
+        } else if (count > 1) {
+          std::cout << count << " incorrect amount" << std::endl;
+        } else {
+        }
+
+        cv::imshow("box", display);
+        while ((cv::waitKey() & 0xEFFFFF) != 81)
+          ;
+        */
       }
     }
   }
 
   // get difference between a partial arc and the total arc of the circle
   // the ones that have less proportion are the ones behind
+  
+  return champion_list;
 }
