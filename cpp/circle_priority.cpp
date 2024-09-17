@@ -73,14 +73,14 @@ cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
     for (int x = 0; x < hsvImage.cols; ++x) {
       cv::Vec3b pixel = hsvImage.at<cv::Vec3b>(y, x);
 
-      // Only consider non-black pixels (non-zero Saturation and Value)
+      // black pixels are ignored
       if (pixel[1] > 0 || pixel[2] > 0) {
-        int hue = pixel[0];        // is in the range [0, 179] in OpenCV
-        int saturation = pixel[1]; // is in the range [0, 255]
-        int value = pixel[2];      // is in the range [0, 255]
+        int hue = pixel[0];        // range [0, 179]
+        int saturation = pixel[1]; // range [0, 255]
+        int value = pixel[2];      // range [0, 255]
 
-        // Convert Hue to cartesian coordinates (cosine and sine)
-        double hueRadians = (hue * 2.0 * CV_PI) / 180.0; // Convert to [0, 2*PI]
+        // convert Hue to cartesian coordinates
+        double hueRadians = (hue * 2.0 * CV_PI) / 180.0; // convert to [0, 2*PI]
         sumHueX += cos(hueRadians);
         sumHueY += sin(hueRadians);
 
@@ -94,13 +94,13 @@ cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
 
   cv::Scalar averageColor(0, 0, 0);
   if (count > 0) {
-    // Compute the average Hue by converting back from cartesian to angular form
+    // compute the average Hue by converting back from cartesian to angular form
     double avgHueRadians = atan2(sumHueY, sumHueX);
     if (avgHueRadians < 0) {
-      avgHueRadians += 2.0 * CV_PI; // Ensure hue is positive
+      avgHueRadians += 2.0 * CV_PI; // hue > 0
     }
     int avgHue = static_cast<int>((avgHueRadians * 180.0) / CV_PI /
-                                  2.0); // Convert back to OpenCV range [0, 179]
+                                  2.0); // convert to [0, 179]
 
     int avgSaturation = static_cast<int>(sumSaturation / count);
     int avgValue = static_cast<int>(sumValue / count);
@@ -120,20 +120,20 @@ std::string frequentColor(cv::Mat &src, cv::Point center,
 
   cv::Scalar color = averageHSVColorExcludingBlack(mask);
 
-  std::cout << color << std::endl;
-
   std::string color_str;
   unsigned int intensity = 50;
 
-  if (color[0] < 30 || color[0] > 140) {
+  if (color[1] < 80 || color[2] < 80) {
+    color_str = "undecided";
+  } else if (color[0] < 30 || color[0] > 140) {
     color_str = "red";
   } else if (color[0] > 70 || color[0] < 130) {
     color_str = "blue";
+  } else if (color[1] < 40 || color[2] < 40) {
+    color_str = "undecided";
   } else {
     color_str = "undecided";
   }
-
-  std::cout << color_str << endl;
 
   return color_str;
 }
