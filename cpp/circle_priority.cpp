@@ -8,8 +8,10 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-using namespace std;
-
+const std::vector<std::string> BLUE = {"blitcrank", "samira", "veigar", "diana",
+                                       "poppy"};
+const std::vector<std::string> RED = {"pyke", "jhin", "talon", "gragas",
+                                      "jayce"};
 // TODO: make the clusters a stack
 
 // clusters the circles based on how close they are with each other
@@ -40,8 +42,7 @@ void cluster_circles(Circles &circles, CirclesCluster &clusters,
   }
 }
 
-void putCenteredText(cv::Mat &image, const std::string &text,
-                     cv::Scalar color) {
+void putCenteredText(cv::Mat &image, const std::string &text, cv::Scalar color) {
   int fontFace = cv::FONT_HERSHEY_SIMPLEX;
   double fontScale = 0.5;
   int thickness = 2;
@@ -64,6 +65,22 @@ const cv::Mat create_mask(const cv::Mat &src, cv::Point center,
 
   return mask;
 }
+
+cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center) {
+        int x = center.x - radius;
+        int y = center.y - radius;
+        int width = 2 * radius;
+        int height = 2 * radius;
+
+        x = std::max(x, 0);
+        y = std::max(y, 0);
+
+        width = std::min(width, src.cols - x);
+        height = std::min(height, src.rows - y);
+
+        return cv::Rect (x, y, width, height);
+}
+
 
 cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
   double sumHueX = 0.0, sumHueY = 0.0;
@@ -113,6 +130,7 @@ cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
 
   return averageColor;
 }
+
 std::string frequentColor(cv::Mat &src, cv::Point center,
                           unsigned short radius) {
 
@@ -146,23 +164,11 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
   for (auto &cluster : clusterCircles) {
     if (clusterCircles.size() != 1) {
       for (const cv::Vec3f &circle : cluster) {
-        // crop image to fit circle
+
         cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
-        unsigned short radius = cvRound(circle[2]) + 5;
+        unsigned short radius = cvRound(circle[2]) + 5; // added to account for tolerances
 
-        int x = center.x - radius;
-        int y = center.y - radius;
-        int width = 2 * radius;
-        int height = 2 * radius;
-
-        // Ensure the bounding box is within the image bounds
-        x = std::max(x, 0);
-        y = std::max(y, 0);
-
-        width = std::min(width, src.cols - x);
-        height = std::min(height, src.rows - y);
-
-        cv::Rect boundingBox(x, y, width, height);
+        cv::Rect boundingBox = getBoundingBox(src, radius, center);
         cv::Mat croppedResult = src(boundingBox);
 
         cv::Point center_box = {radius, radius};
@@ -170,7 +176,6 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
         std::string team = frequentColor(croppedResult, center_box, radius);
         
         //putCenteredText(croppedResult, team, cv::Scalar{255, 255, 255});
-
         /*
         cv::cvtColor(croppedResult, croppedResult, cv::COLOR_HSV2BGR);
         cv::imshow("box", croppedResult);
@@ -191,9 +196,9 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
         cv::inRange(croppedResult, cv::Scalar(95, 120, 120),
                     cv::Scalar(128, 255, 255), blueMask);
         cv::bitwise_or(display, blueMask, display);
-        // cv::cvtColor(display, display, cv::COLOR_GRAY2BGR);
 
         /*
+        cv::cvtColor(display, display, cv::COLOR_GRAY2BGR);
         cv::imshow("box", display);
         while ((cv::waitKey() & 0xEFFFFF) != 81)
           ;
@@ -205,10 +210,11 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
         cv::HoughCircles(display, circles, cv::HOUGH_GRADIENT, 1, 2 * radius,
                          350, 5, radius - 5, radius - 3);
 
+        Champion champion;
         if (circles.size() == 0) {
         } else if (circles.size() > 1) {
         } else {
-          Champion champion = {
+          champion = {
             static_cast<unsigned short>(circles[0][2]),
             static_cast<unsigned int>(center.x),
             static_cast<unsigned int>(center.y),
@@ -216,15 +222,6 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
           };
           champion_list.push_back(champion);
         }
-
-        /*
-          typedef struct{
-            unsigned short radius;
-            unsigned int center_x;
-            unsigned int center_y;
-            bool team;
-          } Champion;
-        */
 
         /*
         for (size_t i = 0; i < circles.size(); i++) {
@@ -251,6 +248,7 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
         while ((cv::waitKey() & 0xEFFFFF) != 81)
           ;
         */
+
       }
     }
   }

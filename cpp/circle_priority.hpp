@@ -17,6 +17,10 @@ typedef struct{
   string team;
 } Champion;
 
+cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center);
+
+void putCenteredText(cv::Mat &image, const std::string &text, cv::Scalar color);
+
 void cluster_circles(Circles &circles, CirclesCluster &clusters, float distanceThreshold); // Passed as reference
 
 vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles);

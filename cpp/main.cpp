@@ -12,9 +12,9 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  #ifdef OPENCV_DEBUG
-    std::cout << "debug flag is here" << std::endl;
-  #endif
+#ifdef OPENCV_DEBUG
+  std::cout << "debug flag is here" << std::endl;
+#endif
 
   fs::path directoryPath = argv[1];
 
@@ -35,7 +35,16 @@ int main(int argc, char **argv) {
                   << std::endl;
         continue;
       } else {
+        auto start = std::chrono::high_resolution_clock::now();
+
         detectChamp(image);
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration =
+            std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        std::cout << "Time spent in frame: " << duration.count() << " ms"
+                  << std::endl;
       }
     }
   }
