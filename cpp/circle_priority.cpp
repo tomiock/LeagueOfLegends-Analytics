@@ -42,7 +42,8 @@ void cluster_circles(Circles &circles, CirclesCluster &clusters,
   }
 }
 
-void putCenteredText(cv::Mat &image, const std::string &text, cv::Scalar color) {
+void putCenteredText(cv::Mat &image, const std::string &text,
+                     cv::Scalar color) {
   int fontFace = cv::FONT_HERSHEY_SIMPLEX;
   double fontScale = 0.5;
   int thickness = 2;
@@ -67,20 +68,19 @@ const cv::Mat create_mask(const cv::Mat &src, cv::Point center,
 }
 
 cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center) {
-        int x = center.x - radius;
-        int y = center.y - radius;
-        int width = 2 * radius;
-        int height = 2 * radius;
+  int x = center.x - radius;
+  int y = center.y - radius;
+  int width = 2 * radius;
+  int height = 2 * radius;
 
-        x = std::max(x, 0);
-        y = std::max(y, 0);
+  x = std::max(x, 0);
+  y = std::max(y, 0);
 
-        width = std::min(width, src.cols - x);
-        height = std::min(height, src.rows - y);
+  width = std::min(width, src.cols - x);
+  height = std::min(height, src.rows - y);
 
-        return cv::Rect (x, y, width, height);
+  return cv::Rect(x, y, width, height);
 }
-
 
 cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
   double sumHueX = 0.0, sumHueY = 0.0;
@@ -157,7 +157,8 @@ std::string frequentColor(cv::Mat &src, cv::Point center,
   return color_str;
 }
 
-vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircles) {
+vector<Champion> get_priority_circles(cv::Mat &src,
+                                      CirclesCluster &clusterCircles) {
   vector<Champion> champion_list;
 
   // see if cluster contains just one element -> pass
@@ -166,7 +167,8 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
       for (const cv::Vec3f &circle : cluster) {
 
         cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
-        unsigned short radius = cvRound(circle[2]) + 5; // added to account for tolerances
+        unsigned short radius =
+            cvRound(circle[2]) + 5; // added to account for tolerances
 
         cv::Rect boundingBox = getBoundingBox(src, radius, center);
         cv::Mat croppedResult = src(boundingBox);
@@ -174,15 +176,6 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
         cv::Point center_box = {radius, radius};
 
         std::string team = frequentColor(croppedResult, center_box, radius);
-        
-        //putCenteredText(croppedResult, team, cv::Scalar{255, 255, 255});
-        /*
-        cv::cvtColor(croppedResult, croppedResult, cv::COLOR_HSV2BGR);
-        cv::imshow("box", croppedResult);
-        while ((cv::waitKey() & 0xEFFFFF) != 81)
-          ;
-        cv::cvtColor(croppedResult, croppedResult, cv::COLOR_BGR2HSV);
-        */
 
         cv::Mat display = cv::Mat::zeros(croppedResult.size(), CV_8UC1);
 
@@ -197,13 +190,6 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
                     cv::Scalar(128, 255, 255), blueMask);
         cv::bitwise_or(display, blueMask, display);
 
-        /*
-        cv::cvtColor(display, display, cv::COLOR_GRAY2BGR);
-        cv::imshow("box", display);
-        while ((cv::waitKey() & 0xEFFFFF) != 81)
-          ;
-        */
-
         cv::medianBlur(display, display, 3);
 
         Circles circles;
@@ -211,50 +197,24 @@ vector<Champion> get_priority_circles(cv::Mat &src, CirclesCluster &clusterCircl
                          350, 5, radius - 5, radius - 3);
 
         Champion champion;
+
         if (circles.size() == 0) {
         } else if (circles.size() > 1) {
         } else {
           champion = {
-            static_cast<unsigned short>(circles[0][2]),
-            static_cast<unsigned int>(center.x),
-            static_cast<unsigned int>(center.y),
-            team,
+              team, // red or blue (string)
+              "none",
+              static_cast<unsigned short>(circles[0][2]), // radius
+              center
           };
           champion_list.push_back(champion);
         }
-
-        /*
-        for (size_t i = 0; i < circles.size(); i++) {
-          cv::Vec3i c = circles[i];
-          cv::Point center = cv::Point(c[0], c[1]);
-          int radius = c[2];
-          cv::circle(display, center, radius, cv::Scalar(255, 0, 0), 2);
-        }
-
-        int count = 0;
-        for (auto circle : circles) {
-          std::cout << circle[2] << std::endl;
-          count++;
-        }
-
-        if (count == 0) {
-          std::cout << "no circle" << endl;
-        } else if (count > 1) {
-          std::cout << count << " incorrect amount" << std::endl;
-        } else {
-        }
-
-        cv::imshow("box", display);
-        while ((cv::waitKey() & 0xEFFFFF) != 81)
-          ;
-        */
-
       }
     }
   }
 
   // get difference between a partial arc and the total arc of the circle
   // the ones that have less proportion are the ones behind
-  
+
   return champion_list;
 }

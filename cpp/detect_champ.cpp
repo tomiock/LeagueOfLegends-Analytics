@@ -192,30 +192,19 @@ void detectChamp(cv::Mat &image) {
 
   cv::cvtColor(image_updated, image_updated, cv::COLOR_HSV2BGR);
 
-  // drawCirclesClusters(image_updated, clusters);
-
-  for (auto champion : champions) {
-    cv::Scalar team_color;
-    if (champion.team == "red") {
-      team_color = {0, 0, 255};
-    } else if (champion.team == "blue") {
-      team_color = {255, 0, 0};
-    } else {
-      team_color = {0, 0, 0};
-    }
-
-    cv::Point center = {static_cast<int>(champion.center_x),
-                        static_cast<int>(champion.center_y)};
-    cv::circle(image_updated, center, champion.radius, team_color, 1);
-
+  for (Champion& champion : champions) {
     cv::Rect limiter_box =
-        getBoundingBox(image_updated, champion.radius, center);
+        getBoundingBox(image_updated, champion.radius, champion.center);
 
     cv::Mat box = image_updated(limiter_box);
 
-    std::string detected = compare_champs(box, champion.team);
+    string detected = compare_champs(box, champion.team);
+    champion.name = detected;
+  }
+
+  for (const Champion& champion : champions) {
     cv::Scalar color;
-    if (std::find(RED.begin(), RED.end(), detected) != RED.end()) {
+    if (std::find(RED.begin(), RED.end(), champion.name) != RED.end()) {
       color = {0, 0, 255};
     } else {
       color = {255, 0, 0};
@@ -227,11 +216,11 @@ void detectChamp(cv::Mat &image) {
     int baseline = 0;
 
     cv::Size textSize =
-        cv::getTextSize(detected, fontFace, fontScale, thickness, &baseline);
-    cv::Point textOrg((center.x - textSize.width),
-                      (center.y + textSize.height));
+        cv::getTextSize(champion.name, fontFace, fontScale, thickness, &baseline);
+    cv::Point textOrg((champion.center.x - textSize.width),
+                      (champion.center.y + textSize.height));
 
-    cv::putText(image_updated, detected, textOrg, fontFace, fontScale, color,
+    cv::putText(image_updated, champion.name, textOrg, fontFace, fontScale, color,
                 thickness);
   }
 
