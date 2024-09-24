@@ -9,6 +9,10 @@ BUILD_DIR = build
 # Flag to control generation of compile_commands.json
 GENERATE_COMPILE_COMMANDS ?= 0
 
+ifeq ($(OPENCV_DEBUG), 1)
+CFLAGS += -DOPENCV_DEBUG
+endif
+
 all: $(TARGET)
 ifeq ($(GENERATE_COMPILE_COMMANDS), 1)
 all: compile_commands.json
