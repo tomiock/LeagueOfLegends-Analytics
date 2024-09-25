@@ -8,26 +8,26 @@ using namespace std;
 #include <opencv2/opencv.hpp>
 
 // works in NOT FULL hsv color space where the HUE is between 0 and 180 degrees.
+// this function is made to take as input the HSV values as seen in photo
+// editing software like GIMP
 colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance,
                            int saturationTolerance, int valueTolerance) {
-  // Calculate the lower bound for HSV
-
   int hue = static_cast<int>(hsvColor[0] / 2.0);         // Scale 0-360 to 0-179
   int saturation = static_cast<int>(hsvColor[1] * 2.55); // Scale 0-100 to 0-255
   int value = static_cast<int>(hsvColor[2] * 2.55);      // Scale 0-100 to 0-255
 
-  cv::Scalar lower_bound = cv::Scalar(
-      std::max(0, hue - hueTolerance),               // Lower bound for H
-      std::max(0, saturation - saturationTolerance), // Lower bound for S
-      std::max(0, value - valueTolerance)            // Lower bound for V
-  );
+  // is not necessary to normalize the hue value since opencv does it for us
+  // (negative values are accepted
+  int lower_hue = static_cast<int>(hue - hueTolerance);
+  int upper_hue = static_cast<int>(hue + hueTolerance);
 
-  // Calculate the upper bound for HSV
-  cv::Scalar upper_bound = cv::Scalar(
-      std::min(180, hue + hueTolerance),               // Upper bound for H
-      std::min(255, saturation + saturationTolerance), // Upper bound for S
-      std::min(255, value + valueTolerance)            // Upper bound for V
-  );
+  cv::Scalar lower_bound =
+      cv::Scalar(lower_hue, std::max(0, saturation - saturationTolerance),
+                 std::max(0, value - valueTolerance));
+
+  cv::Scalar upper_bound =
+      cv::Scalar(upper_hue, std::min(255, saturation + saturationTolerance),
+                 std::min(255, value + valueTolerance));
 
   return std::make_tuple(lower_bound, upper_bound);
 }
