@@ -97,7 +97,6 @@ cv::Scalar averageHSVColorExcludingBlack(const cv::Mat &hsvImage) {
         int saturation = pixel[1]; // range [0, 255]
         int value = pixel[2];      // range [0, 255]
 
-        // convert Hue to cartesian coordinates
         double hueRadians = (hue * 2.0 * CV_PI) / 180.0; // convert to [0, 2*PI]
         sumHueX += cos(hueRadians);
         sumHueY += sin(hueRadians);

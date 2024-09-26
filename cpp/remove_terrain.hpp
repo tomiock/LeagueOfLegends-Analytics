@@ -18,7 +18,7 @@ typedef std::tuple<cv::Scalar, cv::Scalar> colorBounds;
 colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance,
                            int saturationTolerance, int valueTolerance);
 
-cv::Mat applyMask(cv::Mat &image, cv::Scalar targetColor,
+cv::Mat getMask(cv::Mat &image, cv::Scalar targetColor,
                   cv::Scalar tolerances);
 
 // Function to update the image by removing specified regions
