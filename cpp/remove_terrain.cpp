@@ -30,14 +30,15 @@ colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance,
   return std::make_tuple(lower_bound, upper_bound);
 }
 
-cv::Mat getMask(cv::Mat &image, cv::Scalar targetColor,
-                  cv::Scalar tolerances) {
+cv::Mat getMask(cv::Mat &image, cv::Scalar targetColor, cv::Scalar tolerances) {
   cv::Scalar lowerBound, upperBound;
   std::tie(lowerBound, upperBound) =
       getColorBounds(targetColor, tolerances[0], tolerances[1], tolerances[2]);
 
   cv::Mat mask;
   cv::inRange(image, lowerBound, upperBound, mask); // Create the mask
+
+  cv::imshow("", mask);
 
   return mask;
 }

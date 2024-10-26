@@ -7,16 +7,16 @@
 #include <string>
 #include <vector>
 
-/*
 const std::vector<std::string> BLUE = {"blitzcrank", "samira", "veigar",
 "diana", "poppy"}; const std::vector<std::string> RED = {"pyke", "jhin",
 "talon", "gragas", "jayce"};
-*/
 
+/*
 const std::vector<std::string> BLUE = {"ksante", "ivern", "smolder", "ezreal",
                                        "rell"};
 const std::vector<std::string> RED = {"poppy", "gwen", "corki", "zeri",
                                       "rakan"};
+*/
 
 Circles detectCircles(cv::Mat &image, unsigned int radius, unsigned int param1,
                       unsigned int param2, int tolerance) {
@@ -163,22 +163,34 @@ void detectChamp(cv::Mat &image) {
   cv::Mat image_HSV;
   cv::cvtColor(image, image_HSV, cv::COLOR_BGR2HSV);
 
-  cv::Scalar color_red = {359, 60, 70};
-  cv::Scalar tolerances_red = {15, 100, 100};
+  cv::Scalar color_red = {359, 40, 40};
+  cv::Scalar tolerances_red = {40, 100, 100};
   cv::Mat mask_red = getMask(image_HSV, color_red, tolerances_red);
 
   cv::Scalar color_blue = {190, 60, 60};
-  cv::Scalar tolerances_blue = {15, 100, 100};
+  cv::Scalar tolerances_blue = {20, 100, 100};
   cv::Mat mask_blue = getMask(image_HSV, color_blue, tolerances_blue);
 
   cv::Mat mask;
   cv::bitwise_or(mask_blue, mask_red, mask);
 
+  cv::imshow("", mask);
+  while ((cv::waitKey() & 0xEFFFFF) != 81);
+
   cv::Mat image_updated;
   image_HSV.copyTo(image_updated, mask);
 
-  int radius = image.rows / 18;
-  Circles circles = detectCircles(image_updated, radius, 150, 15, 2);
+  cv::imshow("", image_updated);
+  while ((cv::waitKey() & 0xEFFFFF) != 81);
+
+  // releasing some steam
+  image_HSV.release();
+  mask.release();
+  mask_blue.release();
+  mask_red.release();
+
+  int radius = image.rows / 25;
+  Circles circles = detectCircles(image_updated, radius, 150, 12, 2);
 
   CirclesCluster clusters;
   cluster_circles(circles, clusters, radius * 2);
@@ -186,8 +198,6 @@ void detectChamp(cv::Mat &image) {
   drawCirclesClusters(image, clusters);
 
   vector<Champion> champions = get_priority_circles(image_updated, clusters);
-
-  cv::cvtColor(image_updated, image_updated, cv::COLOR_HSV2BGR);
 
   for (Champion &champion : champions) {
     cv::Rect limiter_box =
@@ -221,7 +231,7 @@ void detectChamp(cv::Mat &image) {
                 thickness);
   }
 
-  cv::imshow("Processed Image", image);
+  cv::imshow("", image);
   while ((cv::waitKey() & 0xEFFFFF) != 81)
     ;
 

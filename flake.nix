@@ -11,104 +11,128 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, mini-compile-commands }:
-  let
-    system = "x86_64-linux";
-    pkgs = import nixpkgs { inherit system; };
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs { inherit system; };
 
-    commonDependencies = [
-      pkgs.clang-tools
-      pkgs.clang
-      pkgs.pkg-config
-      pkgs.gnumake
-      pkgs.gdb
-      pkgs.gtk3
-      pkgs.libjpeg
-      pkgs.libpng
-      pkgs.libtiff
-      pkgs.libv4l
-    ];
+      commonDependencies = [
+        pkgs.clang-tools
+        pkgs.clang
+        pkgs.pkg-config
+        pkgs.gnumake
+        pkgs.gdb
+        pkgs.gtk3
+        pkgs.libjpeg
+        pkgs.libpng
+        pkgs.libtiff
+        pkgs.libv4l
 
-    opencvGtk = pkgs.opencv4.override {
-      enableGtk3 = true;
-      gtk3 = pkgs.gtk3;
-      enableFfmpeg = true;
-    };
+        pkgs.libffi
+        pkgs.zlib
+        pkgs.uv
+      ];
 
-    mkDerivationWithOpencv = opencv: pkgs.stdenv.mkDerivation {
-      name = "opencv-lol";
+      opencvGtk = pkgs.opencv4.override {
+        enableGtk3 = true;
+        gtk3 = pkgs.gtk3;
+        enableFfmpeg = true;
+      };
 
-      nativeBuildInputs = commonDependencies ++ [ opencv ];
+      mkDerivationWithOpencv = opencv: pkgs.stdenv.mkDerivation {
+        name = "opencv-lol";
 
-      src = ./.;
+        nativeBuildInputs = commonDependencies ++ [ opencv ];
 
-      buildPhase = ''
+        src = ./.;
+
+        buildPhase = ''
         make DEBUG_MACRO=${
           if opencv == opencvGtk then
             "1" # debug macro enable because of GTK package is included
           else
             "0"
         }
-      '';
+        '';
 
-      installPhase = ''
+        installPhase = ''
         mkdir -p $out/bin
         cp opencv_lol $out/bin
         #cp compile_commands.json $out
-      '';
+        '';
 
-      postBuild = ''
+        postBuild = ''
         mkdir -p $out/
         cp opencv_lol $out/bin/opencv_lol
         cp compile_commands.json $out/compile_commands.json
-      '';
-    };
+        '';
+      };
 
-    opencv-lol-debug = mkDerivationWithOpencv opencvGtk;
+      opencv-lol-debug = mkDerivationWithOpencv opencvGtk;
 
-    opencv-lol-release = mkDerivationWithOpencv pkgs.opencv4;
+      opencv-lol-release = mkDerivationWithOpencv pkgs.opencv4;
 
-  in
-  rec {
-    devShells.${system}.default =
-      with import nixpkgs { system = "x86_64-linux"; };
-      let 
+    in
+      rec {
+      devShells.${system}.default =
+        with import nixpkgs { system = "x86_64-linux"; };
+        let 
           mcc-env = (callPackage mini-compile-commands {}).wrap stdenv;
-      in (pkgs.mkShell.override {stdenv = mcc-env;}) {
-
-      buildInputs = commonDependencies ++ [
-        opencvGtk
-        pkgs.opencv4
-        pkgs.python3
-        (python311.buildEnv.override {
-          extraLibs = [
-            pkgs.python311Packages.matplotlib
-            pkgs.python311Packages.numpy
-            pkgs.python311Packages.scipy
-            pkgs.python311Packages.gnureadline
-            pkgs.python311Packages.scikit-image
+          lib-path = with pkgs; lib.makeLibraryPath [
+            libffi
+            openssl
+            stdenv.cc.cc
           ];
-          ignoreCollisions = true;
-        })
-      ];
 
-      shellHook = ''
+        in (pkgs.mkShell.override {stdenv = mcc-env;}) {
+
+            buildInputs = commonDependencies ++ [
+              opencvGtk
+              pkgs.opencv4
+              pkgs.python3
+              (python311.buildEnv.override {
+                extraLibs = [
+                  pkgs.python311Packages.matplotlib
+                  pkgs.python311Packages.numpy
+                  pkgs.python311Packages.scipy
+                  pkgs.python311Packages.gnureadline
+                  pkgs.python311Packages.scikit-image
+                ];
+                ignoreCollisions = true;
+              })
+            ];
+
+            postShellHook = ''
+      ln -sf ${python.sitePackages}/* ./.venv/lib/python3.12/site-packages
+      '';
+
+
+            shellHook = ''
         SOURCE_DATE_EPOCH=$(date +%s)
         export LANG=en_US.UTF-8	
-      '';
+        export "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${lib-path}"
+        VENV=.venv
+
+        if test ! -d $VENV; then
+        python3.12 -m venv $VENV
+        fi
+
+        source ./$VENV/bin/activate
+        uv pip install -r requirements.txt
+        '';
+          };
+
+      # usage with `nix build`
+      defaultPackage.${system} = opencv-lol-release;
+
+      packages.${system} = {
+        debug = opencv-lol-debug;
+        release = opencv-lol-release; # `nix build .#packages.x86_64-linux.debug`
+      };
+
+      apps.x86_64-linux.opencv_lol = flake-utils.lib.mkApp {
+        drv = opencv-lol-release;
+        name = "opencv_lol";
+      };
+
     };
-
-    # usage with `nix build`
-    defaultPackage.${system} = opencv-lol-release;
-
-    packages.${system} = {
-      debug = opencv-lol-debug;
-      release = opencv-lol-release; # `nix build .#packages.x86_64-linux.debug`
-    };
-
-    apps.x86_64-linux.opencv_lol = flake-utils.lib.mkApp {
-      drv = opencv-lol-release;
-      name = "opencv_lol";
-    };
-
-  };
 }

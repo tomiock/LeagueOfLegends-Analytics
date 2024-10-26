@@ -1,6 +1,7 @@
 # dotfiles
 .idea/
 .cache/
+.venv/
 .backup/
 .virtual_documents/
 .ipynb_checkpoints/
