@@ -25,12 +25,17 @@ Circles detectCircles(cv::Mat &image, unsigned int radius, unsigned int param1,
   int max_r = radius + tolerance;
 
   if (image.channels() == 3) {
-    cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
-  } else {
+    cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY); } else {
     grayImage = image;
   }
 
   std::vector<cv::Vec3f> circles;
+
+  cv::Canny(display, dinplay, 0, 100, 3);
+  cv::imshow("", display);
+  while ((cv::waitKey() & 0xEFFFFF) != 81)
+    ;
+
   cv::HoughCircles(grayImage, circles, cv::HOUGH_GRADIENT, 1, 20, param1,
                    param2, min_r, max_r);
 
@@ -189,7 +194,7 @@ void detectChamp(cv::Mat &image) {
   mask_blue.release();
   mask_red.release();
 
-  int radius = image.rows / 25;
+  int radius = image.rows / 22;
   Circles circles = detectCircles(image_updated, radius, 150, 12, 2);
 
   CirclesCluster clusters;
