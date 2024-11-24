@@ -21,6 +21,8 @@ colorBounds getColorBounds(cv::Scalar hsvColor, int hueTolerance,
 cv::Mat getMask(cv::Mat &image, cv::Scalar targetColor,
                   cv::Scalar tolerances);
 
+cv::Mat combineMasks(const std::vector<cv::Mat>& masks);
+
 // Function to update the image by removing specified regions
 cv::Mat update_image(cv::Mat &src);
 

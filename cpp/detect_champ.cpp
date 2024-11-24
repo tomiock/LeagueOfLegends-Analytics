@@ -29,14 +29,15 @@ Circles detectCircles(cv::Mat &image, unsigned int radius, unsigned int param1,
     grayImage = image;
   }
 
-  std::vector<cv::Vec3f> circles;
 
-  cv::Canny(display, dinplay, 0, 100, 3);
-  cv::imshow("", display);
+  cv::Canny(grayImage, grayImage, 0, 100, 3);
+  cv::imshow("", grayImage);
+
   while ((cv::waitKey() & 0xEFFFFF) != 81)
     ;
 
-  cv::HoughCircles(grayImage, circles, cv::HOUGH_GRADIENT, 1, 20, param1,
+  std::vector<cv::Vec3f> circles;
+  cv::HoughCircles(grayImage, circles, cv::HOUGH_GRADIENT, 1, 13, param1,
                    param2, min_r, max_r);
 
   return circles;
@@ -169,11 +170,11 @@ void detectChamp(cv::Mat &image) {
   cv::cvtColor(image, image_HSV, cv::COLOR_BGR2HSV);
 
   cv::Scalar color_red = {359, 40, 40};
-  cv::Scalar tolerances_red = {40, 100, 100};
+  cv::Scalar tolerances_red = {40, 80, 80};
   cv::Mat mask_red = getMask(image_HSV, color_red, tolerances_red);
 
   cv::Scalar color_blue = {190, 60, 60};
-  cv::Scalar tolerances_blue = {20, 100, 100};
+  cv::Scalar tolerances_blue = {15, 65, 70};
   cv::Mat mask_blue = getMask(image_HSV, color_blue, tolerances_blue);
 
   cv::Mat mask;
@@ -194,8 +195,8 @@ void detectChamp(cv::Mat &image) {
   mask_blue.release();
   mask_red.release();
 
-  int radius = image.rows / 22;
-  Circles circles = detectCircles(image_updated, radius, 150, 12, 2);
+  int radius = image.rows / 25;
+  Circles circles = detectCircles(image_updated, radius, 180, 9, 2);
 
   CirclesCluster clusters;
   cluster_circles(circles, clusters, radius * 2);
