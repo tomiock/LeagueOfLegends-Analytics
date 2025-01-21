@@ -8,6 +8,7 @@
 __pycache__/
 
 runs/
+reference_images/
 reference_images/champions/*.png
 reference_images/champion_names.csv
 dataset/

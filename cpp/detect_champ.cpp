@@ -7,16 +7,20 @@
 #include <string>
 #include <vector>
 
-const std::vector<std::string> BLUE = {"blitzcrank", "samira", "veigar",
-"diana", "poppy"}; const std::vector<std::string> RED = {"pyke", "jhin",
-"talon", "gragas", "jayce"};
-
 /*
+const std::vector<std::string> BLUE = {"blitzcrank", "samira", "veigar", "diana", "poppy"};
+const std::vector<std::string> RED = {"pyke", "jhin", "talon", "gragas", "jayce"};
+*/
+
+enum class MaskMode {
+    PRESERVE, // Preserve pixels in the masks
+    REMOVE    // Remove pixels in the masks
+};
+
 const std::vector<std::string> BLUE = {"ksante", "ivern", "smolder", "ezreal",
                                        "rell"};
 const std::vector<std::string> RED = {"poppy", "gwen", "corki", "zeri",
                                       "rakan"};
-*/
 
 Circles detectCircles(cv::Mat &image, unsigned int radius, unsigned int param1,
                       unsigned int param2, int tolerance) {
@@ -30,11 +34,13 @@ Circles detectCircles(cv::Mat &image, unsigned int radius, unsigned int param1,
   }
 
 
-  cv::Canny(grayImage, grayImage, 0, 100, 3);
-  cv::imshow("", grayImage);
+  cv::blur(grayImage, grayImage, cv::Size(5,5));
+  //cv::medianBlur(grayImage, grayImage, 5);
 
-  while ((cv::waitKey() & 0xEFFFFF) != 81)
-    ;
+  cv::Canny(grayImage, grayImage, 0, 100, 3);
+
+  //cv::imshow("", grayImage);
+  //while ((cv::waitKey() & 0xEFFFFF) != 81);
 
   std::vector<cv::Vec3f> circles;
   cv::HoughCircles(grayImage, circles, cv::HOUGH_GRADIENT, 1, 13, param1,
@@ -100,6 +106,7 @@ float SIFT_similarity(const cv::Mat &img1, const cv::Mat &img2) {
 
   // If descriptors are empty, return similarity of 0.0
   if (des1.empty() || des2.empty()) {
+    cout << "empty" << endl;
     return 0.0f;
   }
 
@@ -125,7 +132,6 @@ float SIFT_similarity(const cv::Mat &img1, const cv::Mat &img2) {
   return static_cast<float>(good_matches.size()) / kp1.size();
 }
 
-// std::string compare_champs(const cv::Mat &detected, const cv::Mat &mask) {
 std::string compare_champs(const cv::Mat &detected, std::string team) {
   std::vector<std::pair<std::string, float>> results;
 
@@ -151,6 +157,8 @@ std::string compare_champs(const cv::Mat &detected, std::string team) {
         if (entry.path().filename() == file + ".png") {
           std::string file_path = entry.path().string();
           cv::Mat ref_image = cv::imread(file_path);
+          cv::resize(ref_image, ref_image, detected.size());
+
           index = SIFT_similarity(detected, ref_image);
 
           if (index > better_match_index) {
@@ -165,29 +173,56 @@ std::string compare_champs(const cv::Mat &detected, std::string team) {
   return better_match;
 }
 
+void combineMasks(const cv::Mat& input, cv::Mat& output, const std::vector<cv::Mat>& masks, MaskMode mode = MaskMode::PRESERVE) {
+    if (masks.empty()) {
+        if (mode == MaskMode::PRESERVE) {
+            output = cv::Mat::zeros(input.size(), CV_8UC1); // Empty mask for PRESERVE
+        } else {
+            output = cv::Mat::ones(input.size(), CV_8UC1) * 255; // White mask for REMOVE
+        }
+        return;
+    }
+
+    output = masks[0].clone();
+
+    for (size_t i = 1; i < masks.size(); ++i) {
+        cv::bitwise_or(output, masks[i], output);
+    }
+
+    if (mode == MaskMode::REMOVE) {
+        cv::bitwise_not(output, output); // Invert the mask for REMOVE mode
+    }
+}
+
 void detectChamp(cv::Mat &image) {
   cv::Mat image_HSV;
   cv::cvtColor(image, image_HSV, cv::COLOR_BGR2HSV);
 
   cv::Scalar color_red = {359, 40, 40};
-  cv::Scalar tolerances_red = {40, 80, 80};
+  cv::Scalar tolerances_red = {20, 100, 100};
   cv::Mat mask_red = getMask(image_HSV, color_red, tolerances_red);
 
+  cv::Scalar color_red2 = {1, 40, 40};
+  cv::Scalar tolerances_red2 = {20, 100, 100};
+  cv::Mat mask_red2 = getMask(image_HSV, color_red2, tolerances_red2);
+
   cv::Scalar color_blue = {190, 60, 60};
-  cv::Scalar tolerances_blue = {15, 65, 70};
+  cv::Scalar tolerances_blue = {20, 65, 70};
   cv::Mat mask_blue = getMask(image_HSV, color_blue, tolerances_blue);
 
-  cv::Mat mask;
-  cv::bitwise_or(mask_blue, mask_red, mask);
+  std::vector<cv::Mat> masks = {mask_red, mask_red2, mask_blue};
 
-  cv::imshow("", mask);
-  while ((cv::waitKey() & 0xEFFFFF) != 81);
+  cv::Mat mask;
+  combineMasks(image_HSV, mask, masks);
+
+  //cv::imshow("", mask);
+  //while ((cv::waitKey() & 0xEFFFFF) != 81);
 
   cv::Mat image_updated;
   image_HSV.copyTo(image_updated, mask);
 
-  cv::imshow("", image_updated);
-  while ((cv::waitKey() & 0xEFFFFF) != 81);
+  //cv::imshow("", image_updated);
+  //while ((cv::waitKey() & 0xEFFFFF) != 81);
 
   // releasing some steam
   image_HSV.release();
@@ -195,32 +230,68 @@ void detectChamp(cv::Mat &image) {
   mask_blue.release();
   mask_red.release();
 
-  int radius = image.rows / 25;
+  int radius = image.rows / 18;
   Circles circles = detectCircles(image_updated, radius, 180, 9, 2);
 
   CirclesCluster clusters;
-  cluster_circles(circles, clusters, radius * 2);
+  cluster_circles(circles, clusters, radius * 1.2);
 
-  drawCirclesClusters(image, clusters);
+  //drawCirclesClusters(image, clusters);
 
-  vector<Champion> champions = get_priority_circles(image_updated, clusters);
+  //vector<Champion> champions = get_priority_circles(image_updated, clusters);
 
+  vector<Champion> champions;
+  for (const cv::Vec3f &circle : circles) {
+    cv::Point center = {static_cast<int>(circle[0]), static_cast<int>(circle[1])};
+    cv::Rect limiter_box = getBoundingBox(image_updated, circle[2], center);
+
+    cv::Mat box = image(limiter_box);
+
+    //cv::cvtColor(box, box, cv::COLOR_HSV2BGR);
+    //cv::imshow("", box);
+    //while ((cv::waitKey() & 0xEFFFFF) != 81);
+
+    Champion champion = {
+      "blue",
+      "none",
+      static_cast<unsigned short>(circle[2]), // radius
+      center
+    };
+
+    string detected = compare_champs(box, champion.team);
+    champion.name = detected;
+    champions.push_back(champion);
+
+    cout << detected << endl;
+  }
+
+  /*
   for (Champion &champion : champions) {
     cv::Rect limiter_box =
         getBoundingBox(image_updated, champion.radius, champion.center);
 
+    cout << limiter_box << endl;
+
     cv::Mat box = image_updated(limiter_box);
+
+    cv::imshow("", box);
+    while ((cv::waitKey() & 0xEFFFFF) != 81)
+      ;
 
     string detected = compare_champs(box, champion.team);
     champion.name = detected;
+    cout << detected << endl;
   }
+  */
 
   for (const Champion &champion : champions) {
     cv::Scalar color;
     if (std::find(RED.begin(), RED.end(), champion.name) != RED.end()) {
       color = {0, 0, 255};
-    } else {
+    } else if (std::find(BLUE.begin(), BLUE.end(), champion.name) != BLUE.end()) {
       color = {255, 0, 0};
+    } else {
+      color = {255, 255, 255};
     }
 
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;

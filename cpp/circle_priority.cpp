@@ -8,12 +8,18 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+/*
 const std::vector<std::string> BLUE = {"blitcrank", "samira", "veigar", "diana",
                                        "poppy"};
 const std::vector<std::string> RED = {"pyke", "jhin", "talon", "gragas",
                                       "jayce"};
+*/
 // TODO: make the clusters a stack
 
+const std::vector<std::string> BLUE = {"ksante", "ivern", "smolder", "ezreal",
+                                       "rell"};
+const std::vector<std::string> RED = {"poppy", "gwen", "corki", "zeri",
+                                      "rakan"};
 // clusters the circles based on how close they are with each other
 void cluster_circles(Circles &circles, CirclesCluster &clusters,
                      float distanceThreshold) { // Passed as reference
@@ -61,8 +67,8 @@ const cv::Mat create_mask(const cv::Mat &src, cv::Point center,
                           unsigned short radius) {
   cv::Mat mask = cv::Mat::zeros(src.size(), CV_8UC3);
 
-  cv::circle(mask, center, radius - 3, cv::Scalar(255, 255, 255), -1);
-  cv::circle(mask, center, radius - radius / 5, cv::Scalar(0, 0, 0), -1);
+  cv::circle(mask, center, radius + 1, cv::Scalar(255, 255, 255), -1);
+  cv::circle(mask, center, radius - radius / 10, cv::Scalar(0, 0, 0), -1);
 
   return mask;
 }
@@ -167,12 +173,20 @@ vector<Champion> get_priority_circles(cv::Mat &src,
 
         cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
         unsigned short radius =
-            cvRound(circle[2]) + 5; // added to account for tolerances
+            cvRound(circle[2]) + 3; // added to account for tolerances
 
         cv::Rect boundingBox = getBoundingBox(src, radius, center);
         cv::Mat croppedResult = src(boundingBox);
 
         cv::Point center_box = {radius, radius};
+
+        /*
+        cv::Mat croppedResult_RGB;
+        cv::cvtColor(croppedResult, croppedResult_RGB, cv::COLOR_HSV2BGR);
+        cv::imshow("", croppedResult_RGB);
+        while ((cv::waitKey() & 0xEFFFFF) != 81)
+          ;
+        */
 
         std::string team = frequentColor(croppedResult, center_box, radius);
 
@@ -191,23 +205,26 @@ vector<Champion> get_priority_circles(cv::Mat &src,
 
         cv::medianBlur(display, display, 3);
 
+        /*
+        cv::imshow("", display);
+        while ((cv::waitKey() & 0xEFFFFF) != 81)
+          ;
+        */
+
         Circles circles;
-        cv::HoughCircles(display, circles, cv::HOUGH_GRADIENT, 1, 2 * radius,
-                         350, 5, radius - 5, radius - 3);
+        cv::HoughCircles(display, circles, cv::HOUGH_GRADIENT, 1, radius,
+                         350, 5, radius + 2, radius - 2);
+        cout << circles.size() << endl;
 
         Champion champion;
 
-        if (circles.size() == 0) {
-        } else if (circles.size() > 1) {
-        } else {
           champion = {
-              team, // red or blue (string)
+              team,
               "none",
-              static_cast<unsigned short>(circles[0][2]), // radius
+              static_cast<unsigned short>(circle[0]), // radius
               center
           };
           champion_list.push_back(champion);
-        }
       }
     }
   }
