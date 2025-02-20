@@ -73,11 +73,11 @@ const cv::Mat create_mask(const cv::Mat &src, cv::Point center,
   return mask;
 }
 
-cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center) {
+cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center, float scale) {
   int x = center.x - radius;
   int y = center.y - radius;
-  int width = 2 * radius;
-  int height = 2 * radius;
+  int width = scale * radius;
+  int height = scale * radius;
 
   x = std::max(x, 0);
   y = std::max(y, 0);
@@ -175,7 +175,7 @@ vector<Champion> get_priority_circles(cv::Mat &src,
         unsigned short radius =
             cvRound(circle[2]) + 3; // added to account for tolerances
 
-        cv::Rect boundingBox = getBoundingBox(src, radius, center);
+        cv::Rect boundingBox = getBoundingBox(src, radius, center, 2);
         cv::Mat croppedResult = src(boundingBox);
 
         cv::Point center_box = {radius, radius};

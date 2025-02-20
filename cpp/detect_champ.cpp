@@ -1,5 +1,6 @@
 #include "detect_champ.hpp"
 #include "circle_priority.hpp"
+#include "opencv2/core/matx.hpp"
 #include "remove_terrain.hpp"
 
 #include <filesystem>
@@ -53,8 +54,8 @@ void drawCircles(cv::Mat &src, Circles &circles) {
   for (const cv::Vec3f &circle : circles) {
     cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
     int radius = cvRound(circle[2]);
-    cv::circle(src, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
-    cv::circle(src, center, radius, cv::Scalar(255, 0, 255), 3, 8, 0);
+    cv::circle(src, center, 2, cv::Scalar(0, 255, 0), -1, 8, 0);
+    cv::circle(src, center, radius, cv::Scalar(255, 0, 255), 1, 8, 0);
   }
 }
 
@@ -224,12 +225,6 @@ void detectChamp(cv::Mat &image) {
   //cv::imshow("", image_updated);
   //while ((cv::waitKey() & 0xEFFFFF) != 81);
 
-  // releasing some steam
-  image_HSV.release();
-  mask.release();
-  mask_blue.release();
-  mask_red.release();
-
   int radius = image.rows / 18;
   Circles circles = detectCircles(image_updated, radius, 180, 9, 2);
 
@@ -243,13 +238,57 @@ void detectChamp(cv::Mat &image) {
   vector<Champion> champions;
   for (const cv::Vec3f &circle : circles) {
     cv::Point center = {static_cast<int>(circle[0]), static_cast<int>(circle[1])};
-    cv::Rect limiter_box = getBoundingBox(image_updated, circle[2], center);
+    cv::Rect limiter_box = getBoundingBox(image_updated, circle[2], center, 3);
 
     cv::Mat box = image(limiter_box);
 
-    //cv::cvtColor(box, box, cv::COLOR_HSV2BGR);
-    //cv::imshow("", box);
-    //while ((cv::waitKey() & 0xEFFFFF) != 81);
+    /*
+    cv::Mat box_detect;
+    box.copyTo(box_detect);
+    //cv::medianBlur(box_detect, box_detect, 3);
+
+    cv::Mat mask2;
+    cv::cvtColor(box_detect, box_detect, cv::COLOR_BGR2HSV);
+    combineMasks(box_detect, mask2, masks);
+
+    cv::cvtColor(mask2, mask2, cv::COLOR_HSV2BGR);
+    cv::cvtColor(mask2, mask2, cv::COLOR_BGR2GRAY);
+    */
+
+    /*
+
+    float radius_detect = 14;
+    cv::Vec3f new_circle;
+    cv::HoughCircles(mask2, 
+                     new_circle, 
+                     cv::HOUGH_GRADIENT, 
+                     1,  // the inverse ratio of resolution?
+                     radius_detect / 2 , // minimum distance between detected centers
+                     350, // internal canny edge detector
+                     8, // center detection
+                     radius_detect + 1, 
+                     radius_detect - 1);
+
+    cv::Mat circleMask;
+
+    cv::imshow("", circleMask);
+    while ((cv::waitKey() & 0xEFFFFF) != 81);
+
+    circleMask = cv::Mat::zeros(mask2.size(), CV_8UC1); 
+
+    // Draw the circle in white on the output image
+    cv::circle(circleMask, 
+               cv::Point(circle[0], circle[1]), 
+               circle[2], 
+               cv::Scalar(255), // White color
+               -1); // Filled circle
+
+    //cv::Mat maskedOutput; // Create a separate Mat for the output
+    //cv::bitwise_and(box, box, maskedOutput, circleMask); // Apply mask
+
+    cv::imshow("", circleMask);
+    while ((cv::waitKey() & 0xEFFFFF) != 81);
+    */
 
     Champion champion = {
       "blue",
@@ -268,7 +307,7 @@ void detectChamp(cv::Mat &image) {
   /*
   for (Champion &champion : champions) {
     cv::Rect limiter_box =
-        getBoundingBox(image_updated, champion.radius, champion.center);
+        getBoundingBox(image_updated, champion.radius_detect, champion.center);
 
     cout << limiter_box << endl;
 

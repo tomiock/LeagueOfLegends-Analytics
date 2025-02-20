@@ -17,7 +17,7 @@ typedef struct {
   cv::Point center;
 } Champion;
 
-cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center);
+cv::Rect getBoundingBox(cv::Mat &src, unsigned short radius, cv::Point center, float scale);
 
 void putCenteredText(cv::Mat &image, const std::string &text, cv::Scalar color);
 
